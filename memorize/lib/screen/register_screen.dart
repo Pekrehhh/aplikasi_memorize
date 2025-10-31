@@ -274,17 +274,17 @@ class _RegisterScreenState extends State<RegisterScreen> {
       children: [
         Text(
           label,
-          style: TextStyle( // Font default
+          style: TextStyle(
             color: labelColor,
             fontSize: 16,
             fontWeight: FontWeight.w400,
           ),
         ),
-        SizedBox(height: 8), // Jarak label ke field
+        SizedBox(height: 8),
         TextField(
           controller: controller,
           obscureText: obscure,
-          style: TextStyle( // Font default
+          style: TextStyle(
             color: inputTextColor,
             fontSize: 20,
             fontWeight: FontWeight.w300,
@@ -294,7 +294,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
             fillColor: inputFillColor,
             hintText: hint,
             hintStyle: TextStyle(color: inputTextColor.withOpacity(0.7)),
-            // Atur tinggi field (71px) dengan contentPadding
             contentPadding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10),

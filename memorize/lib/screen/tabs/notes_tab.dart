@@ -4,7 +4,7 @@ import 'package:intl/intl.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/notes_provider.dart';
 import '../new_memo_screen.dart';
-import '../../services/notification_service.dart'; // Pastikan import ini ada
+import '../../services/notification_service.dart';
 
 class NotesTab extends StatefulWidget {
   const NotesTab({Key? key}) : super(key: key);
@@ -18,7 +18,6 @@ class _NotesTabState extends State<NotesTab> {
   bool _isSearching = false;
   final _searchController = TextEditingController();
 
-  // --- STYLING ---
   final Color backgroundColor = Color(0xFF0c1320);
   final Color headerAccentColor = Color(0xFF24cccc);
   final Color searchBorderColor = Color(0xFF62f4f4);
@@ -27,7 +26,6 @@ class _NotesTabState extends State<NotesTab> {
   final Color titleColor = Color(0xFF62f4f4);
   final Color subtitleColor = Colors.white;
   final Color timeColor = Colors.white;
-  // --- BATAS STYLING ---
 
   @override
   void initState() {
@@ -49,7 +47,6 @@ class _NotesTabState extends State<NotesTab> {
   }
 
   Future<void> _fetchNotes() async {
-    // ... (Logika _fetchNotes tidak berubah) ...
     final token = Provider.of<AuthProvider>(context, listen: false).token;
     if (mounted) {
       _searchController.clear();
@@ -77,7 +74,6 @@ class _NotesTabState extends State<NotesTab> {
   }
 
   Future<void> _deleteNote(int noteId) async {
-    // ... (Logika _deleteNote tidak berubah) ...
     final token = Provider.of<AuthProvider>(context, listen: false).token;
     try {
       await NotificationService().cancelNotification(noteId);
@@ -105,18 +101,15 @@ class _NotesTabState extends State<NotesTab> {
 
   AppBar _buildAppBar() {
     if (_isSearching) {
-      // Tampilan AppBar saat mencari
       return AppBar(
         backgroundColor: backgroundColor,
         elevation: 0,
-        // Tombol Back (CSS: .arrow-left)
         leading: IconButton(
           icon: Icon(Icons.arrow_back_ios_new, color: Colors.white, size: 20),
           onPressed: _toggleSearch,
         ),
         title: null,
         actions: [
-          // "My Notes" button di kanan
           Padding(
             padding: const EdgeInsets.only(right: 30.0),
             child: Center(
@@ -140,14 +133,11 @@ class _NotesTabState extends State<NotesTab> {
         ],
       );
     } else {
-      // Tampilan AppBar default
       return AppBar(
         backgroundColor: backgroundColor,
         elevation: 0,
         automaticallyImplyLeading: false,
-        // --- PERBAIKAN PADDING (CSS: left: 30px) ---
         titleSpacing: 30.0,
-        // --- BATAS PERBAIKAN ---
         title: Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
           decoration: BoxDecoration(
@@ -168,9 +158,7 @@ class _NotesTabState extends State<NotesTab> {
             icon: Icon(Icons.search, color: headerAccentColor, size: 28),
             onPressed: _toggleSearch,
           ),
-          // --- PERBAIKAN PADDING (CSS: right: 31px) ---
-          SizedBox(width: 14), // Default padding 16 + 14 = 30
-          // --- BATAS PERBAIKAN ---
+          SizedBox(width: 14),
         ],
       );
     }
@@ -191,9 +179,7 @@ class _NotesTabState extends State<NotesTab> {
         ),
         SizedBox(height: 30),
         Padding(
-          // --- PERBAIKAN PADDING ---
           padding: const EdgeInsets.symmetric(horizontal: 30.0),
-          // --- BATAS PERBAIKAN ---
           child: Column(
             children: [
               Container(
@@ -224,7 +210,6 @@ class _NotesTabState extends State<NotesTab> {
                       hintText: 'Type some text',
                       hintStyle: TextStyle(color: searchBorderColor, fontSize: 14),
                       border: InputBorder.none,
-                      // Padding kiri 50px agar sejajar teks placeholder
                       contentPadding: EdgeInsets.only(left: 50, bottom: 8), 
                     ),
                   ),
@@ -264,9 +249,7 @@ class _NotesTabState extends State<NotesTab> {
         }
         
         return ListView.builder(
-          // --- PERBAIKAN PADDING ---
           padding: const EdgeInsets.symmetric(horizontal: 30.0, vertical: 8.0),
-          // --- BATAS PERBAIKAN ---
           itemCount: notesData.notes.length,
           itemBuilder: (ctx, index) {
             final note = notesData.notes[index];
@@ -274,7 +257,7 @@ class _NotesTabState extends State<NotesTab> {
             try {
               final hexColor = note.color.replaceFirst('#', 'FF');
               noteColor = Color(int.parse(hexColor, radix: 16));
-            } catch (e) { /* biarkan default */ }
+            } catch (e) { /**/ }
 
             return Dismissible(
               key: ValueKey(note.id),
@@ -405,9 +388,7 @@ class _NotesTabState extends State<NotesTab> {
                 
                 if (!_isSearching && !_isLoading && Provider.of<NotesProvider>(context).notes.isNotEmpty)
                   Padding(
-                    // --- PERBAIKAN PADDING ---
-                    padding: const EdgeInsets.fromLTRB(30, 15, 30, 8), 
-                    // --- BATAS PERBAIKAN ---
+                    padding: const EdgeInsets.fromLTRB(30, 15, 30, 8),
                     child: Align(
                       alignment: Alignment.centerLeft,
                       child: Text(
@@ -426,11 +407,7 @@ class _NotesTabState extends State<NotesTab> {
               ],
             ),
       
-      // --- PERBAIKAN POSISI FAB ---
       floatingActionButton: Padding(
-        // Atur padding agar sesuai CSS (right: 30px, bottom: 125px)
-        // BottomNav 80px + 16px default = 96px. 125 - 96 = 29px.
-        // Right 16px default. 30 - 16 = 14px.
         padding: const EdgeInsets.only(right: 14.0, bottom: 29.0),
         child: FloatingActionButton(
           onPressed: () {
@@ -443,7 +420,6 @@ class _NotesTabState extends State<NotesTab> {
           child: Icon(Icons.add),
         ),
       ),
-      // --- BATAS PERBAIKAN ---
     );
   }
 }

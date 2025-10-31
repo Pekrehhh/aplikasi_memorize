@@ -6,8 +6,6 @@ import '../providers/notes_provider.dart';
 import '../services/notification_service.dart';
 
 class NewMemoScreen extends StatefulWidget {
-  // const NewMemoScreen({Key? key, this.note}) : super(key: key);
-  // final Note? note; // Nanti untuk mode Edit
 
   const NewMemoScreen({Key? key}) : super(key: key);
 
@@ -30,8 +28,6 @@ class _NewMemoScreenState extends State<NewMemoScreen> {
   };
 
   String _selectedColor = '#24cccc'; 
-
-
 
   @override
   void initState() {
@@ -205,7 +201,6 @@ class _NewMemoScreenState extends State<NewMemoScreen> {
         padding: const EdgeInsets.fromLTRB(28, 20, 28, 20),
         child: Column(
           children: [
-            // --- KARTU MEMO ---
             Container(
               height: 300,
               width: double.infinity,
@@ -257,7 +252,6 @@ class _NewMemoScreenState extends State<NewMemoScreen> {
             ),
             SizedBox(height: 36),
 
-            // --- KARTU "ADD TIME" ---
             GestureDetector(
               onTap: _pickDateTime,
               child: Container(
@@ -295,7 +289,6 @@ class _NewMemoScreenState extends State<NewMemoScreen> {
             ),
             SizedBox(height: 36),
 
-            // --- KARTU "PILIH WARNA" ---
             Container(
               height: 120,
               width: double.infinity,

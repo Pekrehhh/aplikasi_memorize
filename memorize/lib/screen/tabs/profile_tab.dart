@@ -64,7 +64,6 @@ class _ProfileTabState extends State<ProfileTab> {
     );
   }
 
-  // --- FUNGSI POP-UP LOGOUT (FONT DIPERBAIKI) ---
   void _showLogoutDialog(BuildContext context) {
     final Color popupBgColor = Color(0xFF24cccc);
     final Color titleColor = Color(0xFF0c1320);
@@ -113,7 +112,6 @@ class _ProfileTabState extends State<ProfileTab> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    // Tombol "Cancel"
                     ElevatedButton(
                       style: ElevatedButton.styleFrom(
                         backgroundColor: cancelBgColor,
@@ -130,16 +128,13 @@ class _ProfileTabState extends State<ProfileTab> {
                       child: Text(
                         'Cancel',
                         style: TextStyle(
-                          // --- PERBAIKAN DI SINI ---
-                          fontSize: 18, // Ukuran font disesuaikan
-                          // --- BATAS PERBAIKAN ---
+                          fontSize: 18,
                           fontWeight: FontWeight.w500,
                         ),
                       ),
                     ),
                     SizedBox(width: 39),
 
-                    // Tombol "Logout"
                     ElevatedButton(
                       style: ElevatedButton.styleFrom(
                         backgroundColor: logoutBgColor,
@@ -157,9 +152,7 @@ class _ProfileTabState extends State<ProfileTab> {
                       child: Text(
                         'Logout',
                         style: TextStyle(
-                          // --- PERBAIKAN DI SINI ---
-                          fontSize: 18, // Ukuran font disesuaikan
-                          // --- BATAS PERBAIKAN ---
+                          fontSize: 18,
                           fontWeight: FontWeight.w500,
                         ),
                       ),
@@ -173,7 +166,6 @@ class _ProfileTabState extends State<ProfileTab> {
       },
     );
   }
-  // --- BATAS FUNGSI ---
 
   @override
   Widget build(BuildContext context) {
@@ -186,7 +178,6 @@ class _ProfileTabState extends State<ProfileTab> {
         String? imageUrl = auth.profileImageUrl;
         NetworkImage? profileImage;
         if (imageUrl != null) {
-          // --- PENTING: GANTI DENGAN IP PC ANDA ---
           final fullUrl = 'http://10.0.2.2:3000$imageUrl'; 
           profileImage = NetworkImage(fullUrl);
         }
@@ -199,7 +190,6 @@ class _ProfileTabState extends State<ProfileTab> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  // Badge "Profile"
                   Align(
                     alignment: Alignment.centerLeft,
                     child: Container(
@@ -220,7 +210,6 @@ class _ProfileTabState extends State<ProfileTab> {
                   ),
                   SizedBox(height: 30),
 
-                  // Judul Halaman
                   Text(
                     'This is Profile page',
                     textAlign: TextAlign.center,
@@ -232,7 +221,6 @@ class _ProfileTabState extends State<ProfileTab> {
                   ),
                   SizedBox(height: 40),
 
-                  // Foto Profil
                   Stack(
                     alignment: Alignment.center,
                     children: [
@@ -256,7 +244,6 @@ class _ProfileTabState extends State<ProfileTab> {
                   ),
                   SizedBox(height: 18),
 
-                  // Tombol Edit Foto
                   GestureDetector(
                     onTap: auth.isUploading ? null : _pickAndUploadImage,
                     child: Text(
@@ -267,7 +254,6 @@ class _ProfileTabState extends State<ProfileTab> {
                   ),
                   SizedBox(height: 32),
 
-                  // Kartu Saran & Kesan
                   Container(
                     height: 140,
                     decoration: _buildShadowBorder(labelColor),
@@ -310,7 +296,6 @@ class _ProfileTabState extends State<ProfileTab> {
                   ),
                   SizedBox(height: 12),
 
-                  // Tombol Edit/Save Saran
                   GestureDetector(
                     onTap: () {
                       setState(() {
@@ -329,8 +314,7 @@ class _ProfileTabState extends State<ProfileTab> {
                     ),
                   ),
                   SizedBox(height: 40),
-
-                  // Tombol Logout
+                  
                   if (auth.isLoading)
                     CircularProgressIndicator(color: logoutButtonColor)
                   else

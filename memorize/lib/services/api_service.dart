@@ -3,11 +3,10 @@ import 'dart:convert';
 import '../models/note.dart';
 
 class ApiService {
-  // static const String _baseUrl = 'http://192.168.1.2:3000/api';
   static const String _baseUrl = 'http://10.0.2.2:3000/api';
+  // static const String _baseUrl = 'http://192.168.1.x:3000/api';
   // (atau 'http://localhost:3000' jika pakai Web/iOS)
 
-  // --- FUNGSI AUTH (Login) ---
   Future<Map<String, dynamic>> login(String username, String password) async {
     final url = Uri.parse('$_baseUrl/auth/login');
     try {
@@ -30,7 +29,6 @@ class ApiService {
     }
   }
 
-  // --- FUNGSI AUTH (Register) ---
   Future<Map<String, dynamic>> register(String username, String email, String password) async {
     final url = Uri.parse('$_baseUrl/auth/register');
     try {
@@ -54,9 +52,6 @@ class ApiService {
     }
   }
 
-  // --- FUNGSI NOTES (BARU!) ---
-
-  // 1. READ: Mengambil semua notes
   Future<List<Note>> getNotes(String token) async {
     final url = Uri.parse('$_baseUrl/notes');
     try {
@@ -64,18 +59,15 @@ class ApiService {
         url,
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token', // "Tiket" (Token)
+          'Authorization': 'Bearer $token',
         },
       );
 
       if (response.statusCode == 200) {
-        // API mengembalikan List (array) dari JSON
         final List<dynamic> body = json.decode(response.body);
-        // Kita ubah List JSON itu menjadi List<Note> pakai "pabrik"
         final List<Note> notes = body.map((jsonItem) => Note.fromJson(jsonItem)).toList();
         return notes;
       } else {
-        // Jika gagal (misal: token salah), lempar error
         throw Exception('Gagal mengambil notes');
       }
     } catch (e) {
@@ -83,11 +75,10 @@ class ApiService {
     }
   }
 
-  // 2. CREATE: Membuat note baru
   Future<Note> createNote(
     String token,
     String title,
-    String content, // <-- Pastikan ini String
+    String content,
     String color,
     DateTime? reminderAt,
   ) async {
@@ -95,7 +86,7 @@ class ApiService {
     try {
       Map<String, dynamic> body = {
         'title': title,
-        'content': content, // <-- Kirim sebagai String
+        'content': content,
         'color': color,
       };
 
@@ -113,7 +104,6 @@ class ApiService {
       );
 
       if (response.statusCode == 201) {
-        // Di sini Note.fromJson akan dipanggil, dan sekarang sudah aman
         return Note.fromJson(json.decode(response.body));
       } else {
         throw Exception('Gagal membuat note: ${response.body}');
@@ -123,7 +113,6 @@ class ApiService {
     }
   }
 
-  // 3. DELETE: Menghapus note
   Future<bool> deleteNote(String token, int noteId) async {
     final url = Uri.parse('$_baseUrl/notes/$noteId');
     try {
@@ -140,9 +129,6 @@ class ApiService {
     }
   }
 
-  // --- FUNGSI PROFIL (BARU!) ---
-
-// GET: Ambil data profil
   Future<Map<String, dynamic>> getProfile(String token) async {
     final url = Uri.parse('$_baseUrl/profile/me');
     try {
@@ -163,16 +149,12 @@ class ApiService {
     }
   }
 
-// POST: Upload gambar (pakai Multipart)
   Future<Map<String, dynamic>> uploadProfileImage(String token, String imagePath) async {
     final url = Uri.parse('$_baseUrl/profile/upload');
     try {
       var request = http.MultipartRequest('POST', url);
-      // Tambahkan token ke header
       request.headers['Authorization'] = 'Bearer $token';
-      // Tambahkan file gambar
       request.files.add(
-        // 'profileImage' HARUS SAMA dengan di multer backend
           await http.MultipartFile.fromPath('profileImage', imagePath)
       );
 

@@ -41,7 +41,6 @@ class Memorize extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       home: Consumer<AuthProvider>(
         builder: (ctx, auth, _) {
-          // Jika "isAuth == true" (sudah login)
           if (auth.isAuth) { 
             return HomeScreen(); 
           } else {

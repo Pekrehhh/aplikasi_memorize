@@ -4,7 +4,6 @@ import 'package:timezone/timezone.dart' as tz;
 import 'package:timezone/data/latest.dart' as tz;
 
 class NotificationService {
-  // Singleton pattern
   static final NotificationService _notificationService = NotificationService._internal();
   factory NotificationService() {
     return _notificationService;
@@ -15,14 +14,11 @@ class NotificationService {
       FlutterLocalNotificationsPlugin();
 
   Future<void> init() async {
-    // Inisialisasi Timezone
     tz.initializeTimeZones();
 
-    // Konfigurasi Android
     const AndroidInitializationSettings initializationSettingsAndroid =
-        AndroidInitializationSettings('@mipmap/ic_launcher'); // Ganti jika pakai ikon custom
-
-    // Konfigurasi iOS
+        AndroidInitializationSettings('@mipmap/ic_launcher');
+    
     final DarwinInitializationSettings initializationSettingsIOS =
         DarwinInitializationSettings(
       requestAlertPermission: true,
@@ -35,7 +31,6 @@ class NotificationService {
       iOS: initializationSettingsIOS,
     );
 
-    // Minta Izin Notifikasi (Android 13+)
     await flutterLocalNotificationsPlugin
       .resolvePlatformSpecificImplementation<
           AndroidFlutterLocalNotificationsPlugin>()
@@ -52,30 +47,22 @@ class NotificationService {
     );
   }
 
-  // Handler saat notifikasi diterima (iOS foreground)
   void onDidReceiveLocalNotification(
-      int id, String? title, String? body, String? payload) async {
-    // Tampilkan dialog atau lakukan sesuatu
+    int id, String? title, String? body, String? payload) async {
     print('iOS foreground notification received: $title');
   }
 
-  // Handler saat notifikasi DIKLIK
   void onDidReceiveNotificationResponse(NotificationResponse notificationResponse) async {
     final String? payload = notificationResponse.payload;
-    if (payload != null) {
-      debugPrint('notification payload: $payload');
-      // TODO: Navigasi ke halaman detail memo jika perlu
-    }
+    if (payload != null) {debugPrint('notification payload: $payload');}
   }
 
-  // --- Fungsi Utama: Jadwalkan Notifikasi ---
   Future<void> scheduleNotification({
-    required int id, // Gunakan ID memo
+    required int id,
     required String title,
     required String body,
     required DateTime scheduledTime,
   }) async {
-    // Pastikan waktu ada di masa depan
     if (scheduledTime.isBefore(DateTime.now())) {
       print("Waktu notifikasi sudah lewat, tidak dijadwalkan.");
       return;
@@ -85,11 +72,11 @@ class NotificationService {
       id,
       title,
       body,
-      tz.TZDateTime.from(scheduledTime, tz.local), // Gunakan timezone lokal HP
+      tz.TZDateTime.from(scheduledTime, tz.local),
       const NotificationDetails(
         android: AndroidNotificationDetails(
-          'memo_channel_id', // ID unik channel
-          'Memo Reminders',  // Nama channel (terlihat di setting Android)
+          'memo_channel_id',
+          'Memo Reminders',
           channelDescription: 'Channel for memo reminder notifications',
           importance: Importance.max,
           priority: Priority.high,
@@ -99,12 +86,11 @@ class NotificationService {
       ),
       androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
       matchDateTimeComponents: DateTimeComponents.time,
-      payload: 'memo_$id', // Data tambahan saat notif diklik
+      payload: 'memo_$id',
     );
     print("Notifikasi dijadwalkan untuk ID $id pada $scheduledTime");
   }
-
-  // --- Fungsi Utama: Batalkan Notifikasi ---
+  
   Future<void> cancelNotification(int id) async {
     await flutterLocalNotificationsPlugin.cancel(id);
     print("Notifikasi dibatalkan untuk ID $id");

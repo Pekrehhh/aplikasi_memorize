@@ -28,7 +28,6 @@ class AuthProvider with ChangeNotifier {
     return _isLoading;
   }
 
-  // 1. FUNGSI LOGIN
   Future<Map<String, dynamic>> login(String username, String password) async {
     _isLoading = true;
     notifyListeners();
@@ -52,7 +51,6 @@ class AuthProvider with ChangeNotifier {
     }
   }
 
-  // 2. FUNGSI CEK LOGIN (Saat app baru dibuka)
   Future<void> tryAutoLogin() async {
     final storedToken = await _storage.read(key: 'authToken');
     
@@ -63,14 +61,12 @@ class AuthProvider with ChangeNotifier {
     }
   }
 
-  // 3. FUNGSI LOGOUT
   Future<void> logout() async {
     _token = null;
     await _storage.delete(key: 'authToken');
     notifyListeners();
   }
 
-  // 4. FUNGSI REGISTER
   Future<Map<String, dynamic>> register(String username, String email, String password) async {
     _isLoading = true;
     notifyListeners();
@@ -81,7 +77,6 @@ class AuthProvider with ChangeNotifier {
     return result;
   }
 
-  // Dipanggil saat login/app start
   Future<void> fetchProfile(String token) async {
     final result = await _apiService.getProfile(token);
     if (result['success'] == true) {
@@ -90,8 +85,7 @@ class AuthProvider with ChangeNotifier {
       notifyListeners();
     }
   }
-
-  // Dipanggil saat tombol "Edit Foto" ditekan
+  
   Future<void> uploadImage(String token, String imagePath) async {
     _isUploading = true;
     notifyListeners();
