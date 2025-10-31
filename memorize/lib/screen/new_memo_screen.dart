@@ -3,9 +3,13 @@ import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../providers/auth_provider.dart';
 import '../providers/notes_provider.dart';
+import '../services/notification_service.dart';
 
 class NewMemoScreen extends StatefulWidget {
-  const NewMemoScreen({super.key});
+  // const NewMemoScreen({Key? key, this.note}) : super(key: key);
+  // final Note? note; // Nanti untuk mode Edit
+
+  const NewMemoScreen({Key? key}) : super(key: key);
 
   @override
   _NewMemoScreenState createState() => _NewMemoScreenState();
@@ -16,16 +20,18 @@ class _NewMemoScreenState extends State<NewMemoScreen> {
   final _contentController = TextEditingController();
 
   DateTime? _selectedDateTime;
-  String _selectedColor = '#F0F0F0'; // Default
   bool _isLoading = false;
 
   final Map<String, Color> _colorPalette = {
-    '#F0F0F0': Colors.grey[300]!,
-    '#FFAB91': Colors.red[200]!,
-    '#FFF59D': Colors.yellow[400]!,
-    '#A5D6A7': Colors.green[200]!,
-    '#81D4FA': Colors.blue[200]!,
+    '#24cccc': Color(0xFF24cccc),
+    '#62f4f4': Color(0xFF62f4f4),
+    '#065353': Color(0xFF065353),
+    '#FFFFFF': Colors.white,
   };
+
+  String _selectedColor = '#24cccc'; 
+
+
 
   @override
   void initState() {
@@ -64,6 +70,7 @@ class _NewMemoScreenState extends State<NewMemoScreen> {
 
   Future<void> _saveMemo() async {
     final title = _titleController.text;
+    final content = _contentController.text; 
 
     if (title.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -89,10 +96,22 @@ class _NewMemoScreenState extends State<NewMemoScreen> {
       await Provider.of<NotesProvider>(context, listen: false).addNote(
         token,
         title,
-        _contentController.text,
+        content,
         _selectedColor,
         _selectedDateTime,
       );
+
+      if (_selectedDateTime != null && _selectedDateTime!.isAfter(DateTime.now())) {
+        await Provider.of<NotesProvider>(context, listen: false).fetchNotes(token);
+        final newNote = Provider.of<NotesProvider>(context, listen: false).notes.first;
+
+        NotificationService().scheduleNotification(
+          id: newNote.id,
+          title: newNote.title,
+          body: newNote.content,
+          scheduledTime: _selectedDateTime!,
+        );
+      }
 
       if (context.mounted) {
         Navigator.of(context).pop();
@@ -110,136 +129,217 @@ class _NewMemoScreenState extends State<NewMemoScreen> {
     }
   }
 
+  BoxDecoration _buildShadowBorder(Color borderColor) {
+    return BoxDecoration(
+      color: Color(0xFF0c1320),
+      borderRadius: BorderRadius.circular(25),
+      border: Border.all(color: borderColor, width: 1),
+      boxShadow: [
+        BoxShadow(
+          color: Color.fromRGBO(134, 214, 225, 0.09),
+          offset: Offset(-3, -2),
+          blurRadius: 4,
+          spreadRadius: 0,
+        ),
+        BoxShadow(
+          color: Color.fromRGBO(0, 0, 0, 0.27),
+          offset: Offset(5, 4),
+          blurRadius: 4,
+          spreadRadius: 0,
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final Color backgroundColor = Color(0xFF0c1320);
+    final Color accentColor = Color(0xFF24cccc);
+    final Color labelColor = Color(0xFF62f4f4);
+
     return Scaffold(
+      backgroundColor: backgroundColor,
       appBar: AppBar(
-        title: Text('New memo'),
-        automaticallyImplyLeading: false,
+        backgroundColor: backgroundColor,
+        elevation: 0,
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back_ios_new, color: Colors.white, size: 20),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+        title: Text(
+          'New Memo',
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 24,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        centerTitle: true,
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 20.0),
+            child: _isLoading 
+              ? Center(child: CircularProgressIndicator(color: accentColor))
+              : ElevatedButton(
+                  onPressed: _saveMemo,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: accentColor,
+                    foregroundColor: backgroundColor,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(11),
+                    ),
+                  ),
+                  child: Text(
+                    'Save',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 18,
+                    ),
+                  ),
+                ),
+          ),
+        ],
       ),
+
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.fromLTRB(28, 20, 28, 20),
         child: Column(
           children: [
             // --- KARTU MEMO ---
-            Card(
-              elevation: 2,
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  children: [
-                    TextField(
-                      controller: _titleController,
+            Container(
+              height: 300,
+              width: double.infinity,
+              decoration: _buildShadowBorder(labelColor),
+              padding: const EdgeInsets.symmetric(horizontal: 23, vertical: 18),
+              child: Column(
+                children: [
+                  TextField(
+                    controller: _titleController,
+                    decoration: InputDecoration(
+                      hintText: 'Title',
+                      hintStyle: TextStyle(
+                        color: Colors.white.withOpacity(0.7),
+                        fontSize: 24,
+                        fontWeight: FontWeight.w500,
+                      ),
+                      border: InputBorder.none,
+                    ),
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 24,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  SizedBox(height: 8),
+                  Expanded(
+                    child: TextField(
+                      controller: _contentController,
                       decoration: InputDecoration(
-                        hintText: 'Judul Memo',
+                        hintText: 'Type some text',
+                        hintStyle: TextStyle(
+                          color: labelColor.withOpacity(0.7),
+                          fontSize: 14,
+                          fontWeight: FontWeight.w400,
+                        ),
                         border: InputBorder.none,
                       ),
-                      style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                    ),
-                    Divider(height: 4, thickness: 1),
-                    // Editor utama
-                    Container(
-                      constraints: BoxConstraints(
-                        minHeight: 200,
+                      style: TextStyle(
+                        color: labelColor,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w400,
                       ),
-                      child: TextField(
-                        controller: _contentController,
-                        decoration: InputDecoration(
-                          hintText: 'Isi Memo',
-                          border: InputBorder.none,
-                        ),
-                        maxLines: null,
-                        keyboardType: TextInputType.multiline,
-                      ),
+                      maxLines: null,
+                      keyboardType: TextInputType.multiline,
                     ),
-                    SizedBox(height: 8),
-                  ],
-                ),
-                ),
-            ),
-            SizedBox(height: 16),
-            // --- KARTU "ADD TIME" ---
-            Card(
-              elevation: 2,
-              child: ListTile(
-                leading: Icon(Icons.calendar_today),
-                title: Text(_selectedDateTime == null
-                    ? 'Add time'
-                    : 'Waktu: ${DateFormat('E, d MMM y, HH:mm').format(_selectedDateTime!)}'),
-                trailing: _selectedDateTime != null
-                    ? IconButton(
-                        icon: Icon(Icons.close),
-                        onPressed: () => setState(() => _selectedDateTime = null),
-                      )
-                    : null,
-                onTap: _pickDateTime,
+                  ),
+                ],
               ),
             ),
-            SizedBox(height: 16),
-            // --- KARTU "PILIH WARNA" ---
-            Card(
-              elevation: 2,
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('Warna Memo', style: TextStyle(fontSize: 16)),
-                    SizedBox(height: 12),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
-                      children: _colorPalette.entries.map((entry) {
-                        final colorHex = entry.key;
-                        final color = entry.value;
+            SizedBox(height: 36),
 
-                        return GestureDetector(
-                          onTap: () {
-                            setState(() { _selectedColor = colorHex; });
-                          },
-                          child: Container(
-                            width: 40,
-                            height: 40,
-                            decoration: BoxDecoration(
-                              color: color,
-                              shape: BoxShape.circle,
-                              border: _selectedColor == colorHex
-                                  ? Border.all(color: Theme.of(context).primaryColor, width: 3)
-                                  : null,
-                            ),
-                          ),
-                        );
-                      }).toList(),
+            // --- KARTU "ADD TIME" ---
+            GestureDetector(
+              onTap: _pickDateTime,
+              child: Container(
+                height: 71,
+                width: double.infinity,
+                decoration: _buildShadowBorder(labelColor),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.calendar_today, color: labelColor, size: 30),
+                    SizedBox(width: 16),
+                    Text(
+                      _selectedDateTime == null 
+                        ? 'Add Time' 
+                        : DateFormat('E, d MMM, HH:mm').format(_selectedDateTime!),
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 22,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
+                    
+                    if (_selectedDateTime != null)
+                      IconButton(
+                        icon: Icon(Icons.close, color: Colors.grey),
+                        onPressed: () { 
+                          setState(() => _selectedDateTime = null);
+                        },
+                      )
+                    else
+                      SizedBox(width: 48),
                   ],
                 ),
+              ),
+            ),
+            SizedBox(height: 36),
+
+            // --- KARTU "PILIH WARNA" ---
+            Container(
+              height: 120,
+              width: double.infinity,
+              decoration: _buildShadowBorder(labelColor),
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                children: [
+                  Text(
+                    'Choose a color for Notes',
+                    style: TextStyle(
+                      color: labelColor,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w400,
+                    ),
+                  ),
+                  SizedBox(height: 20),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: _colorPalette.entries.map((entry) {
+                      final colorHex = entry.key;
+                      final color = entry.value;
+
+                      return GestureDetector(
+                        onTap: () {
+                          setState(() { _selectedColor = colorHex; });
+                        },
+                        child: Container(
+                          width: 40,
+                          height: 40,
+                          decoration: BoxDecoration(
+                            color: color,
+                            shape: BoxShape.circle,
+                            border: _selectedColor == colorHex
+                                ? Border.all(color: labelColor, width: 3)
+                                : null,
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                ],
               ),
             ),
           ],
-        ),
-      ),
-      // --- TOMBOL BAWAH (BARU) ---
-      bottomNavigationBar: BottomAppBar(
-        elevation: 10,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              // TOMBOL CANCEL
-              TextButton(
-                onPressed: _isLoading ? null : () {
-                  // Cukup kembali ke halaman sebelumnya
-                  Navigator.of(context).pop();
-                },
-                child: Text('Cancel', style: TextStyle(fontSize: 18)),
-              ),             
-              // TOMBOL SAVE
-              TextButton(
-                onPressed: _isLoading ? null : _saveMemo,
-                child: Text('Save', style: TextStyle(fontSize: 18)),
-              ),
-            ],
-          ),
         ),
       ),
     );

@@ -60,22 +60,33 @@ app.get('/testdb', async (req, res) => {
 
 app.post('/api/auth/register', async (req, res) => {
   try {
-    const { email, password } = req.body;
-    if (!email || !password) {
-      return res.status(400).json({ message: 'Email dan password dibutuhkan' });
+    const { username, email, password } = req.body;
+
+    if (!username || !email || !password) {
+      return res.status(400).json({ message: 'Username, email, dan password dibutuhkan' });
     }
+    
     const hashedPassword = await bcrypt.hash(password, 10);
+
     const newUser = await pool.query(
-      "INSERT INTO users (email, password) VALUES ($1, $2) RETURNING id, email",
-      [email, hashedPassword]
+      "INSERT INTO users (username, email, password) VALUES ($1, $2, $3) RETURNING id, email, username",
+      [username, email, hashedPassword]
     );
+
     res.status(201).json({
       message: 'User berhasil terdaftar!',
       user: newUser.rows[0]
     });
+
   } catch (err) {
-    if (err.code === '23505') {
-      return res.status(400).json({ message: 'Email sudah terdaftar.' });
+    console.error(err.message);
+    if (err.code === '23505') { 
+      if (err.detail.includes('email')) {
+        return res.status(400).json({ message: 'Email sudah terdaftar.' });
+      }
+      if (err.detail.includes('username')) {
+        return res.status(400).json({ message: 'Username sudah digunakan.' });
+      }
     }
     res.status(500).json({ message: 'Terjadi error pada server' });
   }
@@ -83,22 +94,47 @@ app.post('/api/auth/register', async (req, res) => {
 
 app.post('/api/auth/login', async (req, res) => {
   try {
-    const { email, password } = req.body;
-    if (!email || !password) {
-      return res.status(400).json({ message: 'Email dan password dibutuhkan' });
+    const { username, password } = req.body;
+    if (!username || !password) {
+      return res.status(400).json({ message: 'Username dan password dibutuhkan' });
     }
-    const userResult = await pool.query("SELECT * FROM users WHERE email = $1", [email]);
+
+    const userResult = await pool.query(
+      "SELECT * FROM users WHERE username = $1",
+      [username]
+    );
+
     if (userResult.rows.length === 0) {
-      return res.status(401).json({ message: 'Email atau password salah' });
+      return res.status(401).json({ message: 'Username atau password salah' });
     }
+
     const user = userResult.rows[0];
+
     const isPasswordMatch = await bcrypt.compare(password, user.password);
+
     if (!isPasswordMatch) {
-      return res.status(401).json({ message: 'Email atau password salah' });
+      return res.status(401).json({ message: 'Username atau password salah' });
     }
-    const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET, { expiresIn: '1h' });
-    res.status(200).json({ message: 'Login berhasil!', token: token });
+
+    const token = jwt.sign(
+      { userId: user.id },
+      process.env.JWT_SECRET,
+      { expiresIn: '1h' }
+    );
+
+    res.status(200).json({
+      message: 'Login berhasil!',
+      token: token,
+      user: {
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        profile_image_url: user.profile_image_url
+      }
+    });
+
   } catch (err) {
+    console.error(err.message);
     res.status(500).json({ message: 'Terjadi error pada server' });
   }
 });

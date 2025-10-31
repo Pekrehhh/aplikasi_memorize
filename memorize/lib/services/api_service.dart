@@ -3,22 +3,25 @@ import 'dart:convert';
 import '../models/note.dart';
 
 class ApiService {
-  static const String _baseUrl = 'http://192.168.1.2:3000/api';
-  // static const String _baseUrl = 'http://10.0.2.2:3000/api';
+  // static const String _baseUrl = 'http://192.168.1.2:3000/api';
+  static const String _baseUrl = 'http://10.0.2.2:3000/api';
   // (atau 'http://localhost:3000' jika pakai Web/iOS)
 
   // --- FUNGSI AUTH (Login) ---
-  Future<Map<String, dynamic>> login(String email, String password) async {
+  Future<Map<String, dynamic>> login(String username, String password) async {
     final url = Uri.parse('$_baseUrl/auth/login');
     try {
       final response = await http.post(
         url,
-        headers: {'Content-Type': 'application/json'},
-        body: json.encode({'email': email, 'password': password}),
+        headers: { 'Content-Type': 'application/json', },
+        body: json.encode({
+          'username': username,
+          'password': password,
+        }),
       );
       final body = json.decode(response.body);
       if (response.statusCode == 200) {
-        return {'success': true, 'token': body['token']};
+        return {'success': true, 'token': body['token'], 'user': body['user']};
       } else {
         return {'success': false, 'message': body['message']};
       }
@@ -28,28 +31,28 @@ class ApiService {
   }
 
   // --- FUNGSI AUTH (Register) ---
-  Future<Map<String, dynamic>> register(String email, String password) async {
-  final url = Uri.parse('$_baseUrl/auth/register');
-  try {
-    final response = await http.post(
-      url,
-      headers: {'Content-Type': 'application/json'},
-      body: json.encode({'email': email, 'password': password}),
-    );
-
-    final body = json.decode(response.body);
-
-    // 201 = Created (Sukses)
-    if (response.statusCode == 201) {
-      return {'success': true, 'message': body['message']};
-    } else {
-      // Gagal (misal: 400 - Email sudah terdaftar)
-      return {'success': false, 'message': body['message']};
+  Future<Map<String, dynamic>> register(String username, String email, String password) async {
+    final url = Uri.parse('$_baseUrl/auth/register');
+    try {
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({
+          'username': username,
+          'email': email,
+          'password': password,
+        }),
+      );
+      final body = json.decode(response.body);
+      if (response.statusCode == 201) {
+        return {'success': true, 'message': body['message']};
+      } else {
+        return {'success': false, 'message': body['message']};
+      }
+    } catch (e) {
+      return {'success': false, 'message': 'Tidak bisa terhubung ke server: $e'};
     }
-  } catch (e) {
-    return {'success': false, 'message': 'Tidak bisa terhubung ke server: $e'};
   }
-}
 
   // --- FUNGSI NOTES (BARU!) ---
 
@@ -82,25 +85,22 @@ class ApiService {
 
   // 2. CREATE: Membuat note baru
   Future<Note> createNote(
-    String token, 
-    String title, 
-    String content, 
+    String token,
+    String title,
+    String content, // <-- Pastikan ini String
     String color,
     DateTime? reminderAt,
   ) async {
     final url = Uri.parse('$_baseUrl/notes');
     try {
-      // Buat body
       Map<String, dynamic> body = {
         'title': title,
-        'content': content,
+        'content': content, // <-- Kirim sebagai String
         'color': color,
       };
 
-      // Jika reminderAt tidak null, tambahkan ke body
       if (reminderAt != null) {
-        // Ubah ke format string yang bisa dibaca SQL (ISO 8601)
-        body['reminder_at'] = reminderAt.toIso8601String(); 
+        body['reminder_at'] = reminderAt.toIso8601String();
       }
 
       final response = await http.post(
@@ -109,10 +109,11 @@ class ApiService {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
         },
-        body: json.encode(body), // Kirim body yang sudah dinamis
+        body: json.encode(body),
       );
 
       if (response.statusCode == 201) {
+        // Di sini Note.fromJson akan dipanggil, dan sekarang sudah aman
         return Note.fromJson(json.decode(response.body));
       } else {
         throw Exception('Gagal membuat note: ${response.body}');

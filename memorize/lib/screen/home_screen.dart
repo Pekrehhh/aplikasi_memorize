@@ -1,42 +1,23 @@
 import 'package:flutter/material.dart';
-import 'tabs/notes_tab.dart'; 
-import 'tabs/konverter_tab.dart';
-import 'tabs/profile_tab.dart';
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Memorize'),
-        // Mungkin ada tombol tambah catatan di sini
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.add),
-            onPressed: () {
-              // TODO: Navigasi ke halaman tambah/edit catatan
-            },
-          ),
-        ],
-      ),
-      body: const Center(
-        child: Text('Tampilan Daftar Catatan'),
-      ),
-    );
-  }
+import 'package:memorize/screen/tabs/konverter_tab.dart'; 
+import 'package:memorize/screen/tabs/notes_tab.dart';
+import 'package:memorize/screen/tabs/profile_tab.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
-
   @override
-  State createState() => _HomeScreenState();
+  _HomeScreenState createState() => _HomeScreenState();
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  int _selectedIndex = 0; // Indeks tab yang sedang aktif
-  // Daftar halaman/widget untuk setiap tab
+  int _selectedIndex = 0;
+
+  final Color backgroundColor = Color(0xFF0c1320);
+  final Color activeColor = Colors.white;
+  final Color inactiveColor = Color(0xFF24cccc);
+
   static const List<Widget> _widgetOptions = <Widget>[
     NotesTab(),
-    KonversiTab(),
+    KonverterTab(),
     ProfileTab(),
   ];
 
@@ -49,28 +30,47 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: backgroundColor,
       body: Center(
         child: _widgetOptions.elementAt(_selectedIndex),
       ),
-      // Ini adalah Bottom Navigation Bar
-      bottomNavigationBar: BottomNavigationBar(
-        items: const <BottomNavigationBarItem>[
-          BottomNavigationBarItem(
-            icon: Icon(Icons.note_alt_rounded),
-            label: 'Notes',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.construction_rounded),
-            label: 'Konversi',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person_rounded),
-            label: 'Profil',
-          ),
-        ],
-        currentIndex: _selectedIndex,
-        selectedItemColor: Colors.blueAccent,
-        onTap: _onItemTapped, // Panggil fungsi ini saat tab diklik
+
+      bottomNavigationBar: Container(
+        height: 80,
+        decoration: BoxDecoration(
+          color: backgroundColor,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.25),
+              blurRadius: 4,
+              offset: Offset(0, -4),
+            ),
+          ],
+        ),
+        child: BottomNavigationBar(
+          items: <BottomNavigationBarItem>[
+            BottomNavigationBarItem(
+              icon: Icon(Icons.note_alt_rounded),
+              label: 'Notes',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.compare_arrows_rounded),
+              label: 'Konversi',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.person_rounded),
+              label: 'Profil',
+            ),
+          ],
+          currentIndex: _selectedIndex,
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          selectedItemColor: activeColor,
+          unselectedItemColor: inactiveColor,
+          onTap: _onItemTapped,
+          showSelectedLabels: true,
+          showUnselectedLabels: false,
+        ),
       ),
     );
   }

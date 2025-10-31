@@ -1,193 +1,449 @@
 import 'package:flutter/material.dart';
-import 'package:memorize/screen/new_memo_screen.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/notes_provider.dart';
+import '../new_memo_screen.dart';
+import '../../services/notification_service.dart'; // Pastikan import ini ada
+
+class NotesTab extends StatefulWidget {
+  const NotesTab({Key? key}) : super(key: key);
+
+  @override
+  _NotesTabState createState() => _NotesTabState();
+}
 
 class _NotesTabState extends State<NotesTab> {
-  final _titleController = TextEditingController();
-  final _contentController = TextEditingController();
+  bool _isLoading = true;
+  bool _isSearching = false;
+  final _searchController = TextEditingController();
 
-  late Future<void> _notesFuture;
-  
-  // Maximum characters to show in the preview snippet
-  final int _previewMaxChars = 100;
-
-  String _truncate(String? text, int maxChars) {
-    if (text == null) return '';
-    final trimmed = text.trim();
-    if (trimmed.length <= maxChars) return trimmed;
-    return '${trimmed.substring(0, maxChars)}…';
-  }
-
-  Future<void> _fetchNotes() {
-    final token = Provider.of<AuthProvider>(context, listen: false).token;
-    if (token != null) {
-      return Provider.of<NotesProvider>(context, listen: false).fetchNotes(token);
-    }
-    return Future.value();
-  }
+  // --- STYLING ---
+  final Color backgroundColor = Color(0xFF0c1320);
+  final Color headerAccentColor = Color(0xFF24cccc);
+  final Color searchBorderColor = Color(0xFF62f4f4);
+  final Color fabAccentColor = Color(0xFF62f4f4);
+  final Color cardBackgroundColor = Color(0xFF0c1320);
+  final Color titleColor = Color(0xFF62f4f4);
+  final Color subtitleColor = Colors.white;
+  final Color timeColor = Colors.white;
+  // --- BATAS STYLING ---
 
   @override
   void initState() {
     super.initState();
-    _notesFuture = _fetchNotes();
+    _fetchNotes();
+    _searchController.addListener(_onSearchChanged);
   }
 
   @override
   void dispose() {
-    _titleController.dispose();
-    _contentController.dispose();
+    _searchController.removeListener(_onSearchChanged);
+    _searchController.dispose();
     super.dispose();
   }
 
-  // --- FUNGSI UNTUK HAPUS NOTE ---
-  Future<void> _deleteNote(int noteId) async {
-     final token = Provider.of<AuthProvider>(context, listen: false).token;
-     try {
-        await Provider.of<NotesProvider>(context, listen: false).deleteNote(token!, noteId);
-     } catch (e) {
-        if (context.mounted) {
+  void _onSearchChanged() {
+    Provider.of<NotesProvider>(context, listen: false)
+        .searchNotes(_searchController.text);
+  }
+
+  Future<void> _fetchNotes() async {
+    // ... (Logika _fetchNotes tidak berubah) ...
+    final token = Provider.of<AuthProvider>(context, listen: false).token;
+    if (mounted) {
+      _searchController.clear();
+      Provider.of<NotesProvider>(context, listen: false).searchNotes('');
+    }
+    if (token != null) {
+      try {
+        await Provider.of<NotesProvider>(context, listen: false).fetchNotes(token);
+      } catch (e) {
+        if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Gagal menghapus note: $e'),
+              content: Text('Gagal memuat notes: $e'),
               backgroundColor: Colors.red,
             ),
           );
         }
-     }
+      }
+    }
+    if (mounted) {
+      setState(() {
+        _isLoading = false;
+      });
+    }
   }
 
-  // --- UI UTAMA ---
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('My Notes'),
-      ),
+  Future<void> _deleteNote(int noteId) async {
+    // ... (Logika _deleteNote tidak berubah) ...
+    final token = Provider.of<AuthProvider>(context, listen: false).token;
+    try {
+      await NotificationService().cancelNotification(noteId);
+      await Provider.of<NotesProvider>(context, listen: false).deleteNote(token!, noteId);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Gagal menghapus note: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
 
-      body: FutureBuilder(
-        future: _notesFuture,
-        builder: (ctx, snapshot) {
-          // 1. JIKA MASIH LOADING
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator());
-          }
-          // 2. JIKA ADA ERROR
-          if (snapshot.error != null) {
-            return Center(child: Text('Terjadi error: ${snapshot.error}'));
-          }
-          
-          // 3. JIKA SUKSES, TAMPILKAN LIST NOTES
-          return Consumer<NotesProvider>(
-            builder: (ctx, notesData, child) {
-              // 3a. JIKA TIDAK ADA NOTES
-              if (notesData.notes.isEmpty) {
-                return Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.note_alt_outlined, size: 80, color: Colors.grey),
-                      SizedBox(height: 16),
-                      Text('No memos', style: TextStyle(fontSize: 18, color: Colors.grey)),
-                    ],
+  void _toggleSearch() {
+    setState(() {
+      _isSearching = !_isSearching;
+    });
+    if (!_isSearching) {
+      _searchController.clear();
+    }
+  }
+
+  AppBar _buildAppBar() {
+    if (_isSearching) {
+      // Tampilan AppBar saat mencari
+      return AppBar(
+        backgroundColor: backgroundColor,
+        elevation: 0,
+        // Tombol Back (CSS: .arrow-left)
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back_ios_new, color: Colors.white, size: 20),
+          onPressed: _toggleSearch,
+        ),
+        title: null,
+        actions: [
+          // "My Notes" button di kanan
+          Padding(
+            padding: const EdgeInsets.only(right: 30.0),
+            child: Center(
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: headerAccentColor,
+                  borderRadius: BorderRadius.circular(11),
+                ),
+                child: Text(
+                  'My Notes',
+                  style: TextStyle(
+                    color: backgroundColor,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
                   ),
-                );
-              }
-              // 3b. JIKA ADA NOTES, TAMPILKAN LISTVIEW
-              return ListView.builder(
-                padding: const EdgeInsets.all(8),
-                itemCount: notesData.notes.length,
-                itemBuilder: (ctx, index) {
-                  final note = notesData.notes[index];
+                ),
+              ),
+            ),
+          ),
+        ],
+      );
+    } else {
+      // Tampilan AppBar default
+      return AppBar(
+        backgroundColor: backgroundColor,
+        elevation: 0,
+        automaticallyImplyLeading: false,
+        // --- PERBAIKAN PADDING (CSS: left: 30px) ---
+        titleSpacing: 30.0,
+        // --- BATAS PERBAIKAN ---
+        title: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          decoration: BoxDecoration(
+            color: headerAccentColor,
+            borderRadius: BorderRadius.circular(11),
+          ),
+          child: Text(
+            'My Notes',
+            style: TextStyle(
+              color: backgroundColor,
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.search, color: headerAccentColor, size: 28),
+            onPressed: _toggleSearch,
+          ),
+          // --- PERBAIKAN PADDING (CSS: right: 31px) ---
+          SizedBox(width: 14), // Default padding 16 + 14 = 30
+          // --- BATAS PERBAIKAN ---
+        ],
+      );
+    }
+  }
 
-                  Color noteColor = Color(0xFFF0F0F0);
-                  try {
-                    final hexColor = note.color.replaceFirst('#', 'FF');
-                    noteColor = Color(int.parse(hexColor, radix: 16));
-                  } catch (e) {
-                    // Jika parsing gagal, gunakan warna default
-                  }
-
-                  // -- SWIPE-TO-DELETE --
-                  return Dismissible(
-                    key: ValueKey(note.id),
-                    direction: DismissDirection.endToStart,
-                    onDismissed: (direction) {
-                      _deleteNote(note.id); // Fungsi hapus note
-                    },
-                    background: Container(
-                      color: Colors.red,
-                      alignment: Alignment.centerRight,
-                      padding: EdgeInsets.only(right: 20),
-                      margin: EdgeInsets.symmetric(vertical: 4, horizontal: 8),
-                      child: Icon(Icons.delete, color: Colors.white),
+  Widget _buildSearchUI(BuildContext context) {
+    return Column(
+      children: [
+        SizedBox(height: 20),
+        Text(
+          'What activity do you want\nto find?',
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontSize: 24,
+            fontWeight: FontWeight.w500,
+            color: Colors.white,
+          ),
+        ),
+        SizedBox(height: 30),
+        Padding(
+          // --- PERBAIKAN PADDING ---
+          padding: const EdgeInsets.symmetric(horizontal: 30.0),
+          // --- BATAS PERBAIKAN ---
+          child: Column(
+            children: [
+              Container(
+                height: 61,
+                decoration: BoxDecoration(
+                  color: backgroundColor,
+                  borderRadius: BorderRadius.circular(25),
+                  border: Border.all(color: searchBorderColor, width: 1),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Color.fromRGBO(134, 214, 225, 0.09),
+                      offset: Offset(-3, -2),
+                      blurRadius: 4,
                     ),
-                    // -- TAMPILAN NOTE (KARTU) --
-                    child: Card(
-                    margin: EdgeInsets.symmetric(vertical: 4, horizontal: 8),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        border: Border(
-                          left: BorderSide(color: noteColor, width: 5),
+                    BoxShadow(
+                      color: Color.fromRGBO(0, 0, 0, 0.27),
+                      offset: Offset(5, 4),
+                      blurRadius: 4,
+                    ),
+                  ],
+                ),
+                child: Center(
+                  child: TextField(
+                    controller: _searchController,
+                    autofocus: true,
+                    style: TextStyle(color: Colors.white, fontSize: 14),
+                    decoration: InputDecoration(
+                      hintText: 'Type some text',
+                      hintStyle: TextStyle(color: searchBorderColor, fontSize: 14),
+                      border: InputBorder.none,
+                      // Padding kiri 50px agar sejajar teks placeholder
+                      contentPadding: EdgeInsets.only(left: 50, bottom: 8), 
+                    ),
+                  ),
+                ),
+              ),
+              SizedBox(height: 12),
+              Text(
+                'Type and choose your notes from the list',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w400,
+                  color: searchBorderColor,
+                ),
+              ),
+            ],
+          ),
+        ),
+        SizedBox(height: 20),
+      ],
+    );
+  }
+
+  Widget _buildNotesList() {
+    return Consumer<NotesProvider>(
+      builder: (ctx, notesData, child) {
+        if (notesData.notes.isEmpty) {
+          return Center(
+            child: Text(
+              _isSearching ? 'No results found' : 'No Memos',
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.w500,
+                color: Colors.white.withOpacity(0.8),
+              ),
+            ),
+          );
+        }
+        
+        return ListView.builder(
+          // --- PERBAIKAN PADDING ---
+          padding: const EdgeInsets.symmetric(horizontal: 30.0, vertical: 8.0),
+          // --- BATAS PERBAIKAN ---
+          itemCount: notesData.notes.length,
+          itemBuilder: (ctx, index) {
+            final note = notesData.notes[index];
+            Color noteColor = headerAccentColor;
+            try {
+              final hexColor = note.color.replaceFirst('#', 'FF');
+              noteColor = Color(int.parse(hexColor, radix: 16));
+            } catch (e) { /* biarkan default */ }
+
+            return Dismissible(
+              key: ValueKey(note.id),
+              direction: DismissDirection.endToStart,
+              onDismissed: (direction) { _deleteNote(note.id); },
+              background: Container(
+                alignment: Alignment.centerRight,
+                padding: EdgeInsets.only(right: 20),
+                margin: EdgeInsets.symmetric(vertical: 8),
+                decoration: BoxDecoration(
+                  color: Colors.red,
+                  borderRadius: BorderRadius.circular(25),
+                ),
+                child: Icon(Icons.delete, color: Colors.white),
+              ),
+              
+              child: Container(
+                margin: const EdgeInsets.symmetric(vertical: 8.0),
+                height: 136,
+                decoration: BoxDecoration(
+                  color: cardBackgroundColor,
+                  borderRadius: BorderRadius.circular(25),
+                  border: Border.all(color: noteColor, width: 2),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Color.fromRGBO(134, 214, 225, 0.09),
+                      offset: Offset(-3, -2),
+                      blurRadius: 4,
+                    ),
+                    BoxShadow(
+                      color: Color.fromRGBO(0, 0, 0, 0.27),
+                      offset: Offset(5, 4),
+                      blurRadius: 4,
+                    ),
+                  ],
+                ),
+                child: Stack(
+                  children: [
+                    Positioned(
+                      left: 41, top: 18, right: 16, bottom: 12,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  note.title,
+                                  style: TextStyle(
+                                    color: titleColor,
+                                    fontSize: 22,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              if (note.reminderAt != null)
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.end,
+                                  children: [
+                                    Text(
+                                      DateFormat('HH:mm').format(note.reminderAt!.toLocal()),
+                                      style: TextStyle(
+                                        color: timeColor,
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                    Text(
+                                      DateFormat('d MMM y').format(note.reminderAt!.toLocal()),
+                                      style: TextStyle(
+                                        color: timeColor,
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                            ],
+                          ),
+                          SizedBox(height: 12),
+                          Text(
+                            note.content.replaceAll('\n', ' '), 
+                            style: TextStyle(
+                              color: subtitleColor,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w400,
+                            ),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                      ),
+                    ),
+                    Positioned(
+                      left: 8.4, top: 20, bottom: 21, width: 6.777,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: noteColor,
+                          borderRadius: BorderRadius.circular(11),
                         ),
                       ),
-                      child: ListTile(
-                        title: Text(
-                          note.title, 
-                          style: TextStyle(fontWeight: FontWeight.bold)
-                        ),
-                        // SUBTITLE: tampilkan waktu jika ada, lalu cuplikan isi memo (terpotong)
-                        subtitle: (note.reminderAt != null || note.content.trim().isNotEmpty)
-                          ? Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                if (note.reminderAt != null)
-                                  Text(
-                                    DateFormat('E, d MMM, HH:mm').format(note.reminderAt!.toLocal()),
-                                    style: TextStyle(fontSize: 13, color: Colors.grey[700]),
-                                  ),
-                                if (note.content.trim().isNotEmpty) ...[
-                                  SizedBox(height: 4),
-                                  Text(
-                                    _truncate(note.content, _previewMaxChars),
-                                    maxLines: 2,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: TextStyle(color: Colors.grey[700]),
-                                  ),
-                                ],
-                              ],
-                            )
-                          : null,
-                        onTap: () {},
-                      ),
                     ),
-                  ),
-                );
-              },
+                  ],
+                ),
+              ),
             );
           },
         );
-      }),
-
-      // -- TOMBOL TAMBAH NOTE --
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.of(context).push(
-            MaterialPageRoute(builder: (ctx) => NewMemoScreen()),
-          );
-        },
-        child: Icon(Icons.add),
-      ),
+      },
     );
   }
-}
-
-class NotesTab extends StatefulWidget {
-  const NotesTab({super.key});
 
   @override
-  _NotesTabState createState() => _NotesTabState();
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: backgroundColor,
+      appBar: _buildAppBar(),
+      body: _isLoading
+          ? Center(child: CircularProgressIndicator(color: fabAccentColor))
+          : Column(
+              children: [
+                if (_isSearching)
+                  _buildSearchUI(context),
+                
+                if (!_isSearching && !_isLoading && Provider.of<NotesProvider>(context).notes.isNotEmpty)
+                  Padding(
+                    // --- PERBAIKAN PADDING ---
+                    padding: const EdgeInsets.fromLTRB(30, 15, 30, 8), 
+                    // --- BATAS PERBAIKAN ---
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        'All Activity',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 24,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                  ),
+                Expanded(
+                  child: _buildNotesList(), 
+                ),
+              ],
+            ),
+      
+      // --- PERBAIKAN POSISI FAB ---
+      floatingActionButton: Padding(
+        // Atur padding agar sesuai CSS (right: 30px, bottom: 125px)
+        // BottomNav 80px + 16px default = 96px. 125 - 96 = 29px.
+        // Right 16px default. 30 - 16 = 14px.
+        padding: const EdgeInsets.only(right: 14.0, bottom: 29.0),
+        child: FloatingActionButton(
+          onPressed: () {
+            Navigator.of(context).push(
+              MaterialPageRoute(builder: (ctx) => NewMemoScreen()),
+            );
+          },
+          backgroundColor: fabAccentColor,
+          foregroundColor: backgroundColor,
+          child: Icon(Icons.add),
+        ),
+      ),
+      // --- BATAS PERBAIKAN ---
+    );
+  }
 }

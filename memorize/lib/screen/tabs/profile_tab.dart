@@ -12,14 +12,11 @@ class ProfileTab extends StatefulWidget {
 
 class _ProfileTabState extends State<ProfileTab> {
   final ImagePicker _picker = ImagePicker();
-
   Future<void> _pickAndUploadImage() async {
     final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
-
     if (image != null) {
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
       if (authProvider.token != null) {
-        // Tampilkan SnackBar untuk konfirmasi (opsional)
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Mengupload foto...')),
         );
@@ -27,32 +24,36 @@ class _ProfileTabState extends State<ProfileTab> {
       }
     }
   }
-
+  
   @override
   Widget build(BuildContext context) {
+    final Color backgroundColor = Color(0xFF0c1320);
+    final Color accentColor = Color(0xFF62f4f4);
+    final Color cardColor = Color(0xFF1E1E1E);
+
     return Consumer<AuthProvider>(
       builder: (ctx, auth, child) {
         String? imageUrl = auth.profileImageUrl;
         NetworkImage? profileImage;
         if (imageUrl != null) {
-          // --- PENTING: GANTI DENGAN IP PC ANDA ---
-          // (Harus sama dengan _baseUrl di api_service.dart tapi tanpa /api)
-          // Contoh: 'http://192.168.1.10:3000'
-          final fullUrl = 'http://192.168.1.10:3000' + imageUrl;
+          final fullUrl = 'http://10.0.2.2:3000' + imageUrl;
           profileImage = NetworkImage(fullUrl);
         }
 
         return Scaffold(
+          backgroundColor: backgroundColor,
           appBar: AppBar(
             title: Text('Profil'),
+            backgroundColor: backgroundColor,
+            foregroundColor: Colors.white,
+            elevation: 0,
           ),
           body: Center(
-            child: SingleChildScrollView( // Tambahkan SingleChildScrollView
-              padding: const EdgeInsets.all(24.0),
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(10.0),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  // --- CircleAvatar (Gambar Profil) ---
                   Stack(
                     children: [
                       CircleAvatar(
@@ -61,33 +62,33 @@ class _ProfileTabState extends State<ProfileTab> {
                         child: profileImage == null
                             ? Icon(Icons.person, size: 60, color: Colors.grey)
                             : null,
-                        backgroundColor: Colors.grey[200],
+                        backgroundColor: cardColor,
                       ),
                       if (auth.isUploading)
                         Positioned.fill(
-                          child: CircularProgressIndicator(strokeWidth: 2),
+                          child: CircularProgressIndicator(strokeWidth: 2, color: accentColor),
                         ),
                     ],
                   ),
                   SizedBox(height: 12),
-
-                  // --- Tombol Edit Foto ---
                   TextButton.icon(
                     icon: Icon(Icons.edit, size: 16),
                     label: Text('Edit Foto'),
+                    style: TextButton.styleFrom(foregroundColor: accentColor),
                     onPressed: auth.isUploading ? null : _pickAndUploadImage,
                   ),
                   SizedBox(height: 24),
-
-                  // --- Email Pengguna ---
                   Text(
                     auth.email ?? 'Loading email...',
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                      fontSize: 20, 
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
                   ),
                   SizedBox(height: 40),
-
-                  // --- KARTU SARAN & KESAN (REVISI) ---
                   Card(
+                    color: cardColor,
                     elevation: 2,
                     child: Padding(
                       padding: const EdgeInsets.all(16.0),
@@ -99,22 +100,19 @@ class _ProfileTabState extends State<ProfileTab> {
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
-                              color: Theme.of(context).primaryColor, // Biar keren
+                              color: accentColor,
                             ),
                           ),
                           SizedBox(height: 8),
                           Text(
                             'Aplikasi ini sangat membantu dalam mencatat memo dan tugas. Fitur notifikasi dan konversi juga sangat berguna!',
+                            style: TextStyle(color: Colors.white70),
                           ),
                         ],
                       ),
                     ),
                   ),
-                  // --- BATAS REVISI ---
-
                   SizedBox(height: 16),
-
-                  // --- Tombol Logout ---
                   ElevatedButton.icon(
                     icon: Icon(Icons.logout),
                     label: Text('Logout'),
