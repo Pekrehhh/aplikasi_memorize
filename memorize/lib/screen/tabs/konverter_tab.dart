@@ -1,10 +1,15 @@
 import 'package:flutter/material.dart';
-import '../konv_uang_screen.dart'; 
-import '../konv_waktu_screen.dart';   
+import '../currency_conv_screen.dart'; 
+import '../time_conv_screen.dart';   
 
-class KonverterTab extends StatelessWidget {
+class KonverterTab extends StatefulWidget {
   const KonverterTab({Key? key}) : super(key: key);
 
+  @override
+  State<KonverterTab> createState() => _KonverterTabState();
+}
+
+class _KonverterTabState extends State<KonverterTab> {
   Widget _buildKonversiCard({
     required BuildContext context,
     required String title,
@@ -38,7 +43,6 @@ class KonverterTab extends StatelessWidget {
                 child: Icon(icon, color: iconColor, size: 24),
               ),
             ),
-            
             Positioned(
               left: 95,
               child: Text(
@@ -58,6 +62,7 @@ class KonverterTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+
     final Color backgroundColor = Color(0xFF0c1320);
     final Color buttonColor = Color(0xFF24cccc);
     final Color buttonTextColor = Color(0xFF0c1320);
@@ -74,20 +79,20 @@ class KonverterTab extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6), 
                 decoration: BoxDecoration(
-                  color: buttonColor,
                   borderRadius: BorderRadius.circular(11),
                 ),
                 child: Text(
                   'Converter',
                   style: TextStyle(
                     color: backgroundColor,
-                    fontSize: 20,
+                    fontSize: 18,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
               ),
+
               SizedBox(height: 100),
 
               Container(
