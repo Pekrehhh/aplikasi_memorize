@@ -38,7 +38,12 @@ class CurrencyProvider with ChangeNotifier {
     final url = Uri.parse('$_apiUrl$_apiKey/latest/USD');
 
     try {
-      final response = await http.get(url);
+      final response = await http.get(url).timeout(
+        const Duration(seconds: 5),
+        onTimeout: () {
+          throw 'Cek koneksi internet Anda.';
+        },
+      );
       final body = json.decode(response.body);
 
       if (response.statusCode == 200 && body['result'] == 'success') {
