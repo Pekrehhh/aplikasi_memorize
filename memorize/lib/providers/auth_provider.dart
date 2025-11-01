@@ -29,6 +29,8 @@ class AuthProvider with ChangeNotifier {
     return _isLoading;
   }
 
+  get baseUrl => null;
+
   Future<Map<String, dynamic>> login(String username, String password) async {
     _isLoading = true;
     notifyListeners();

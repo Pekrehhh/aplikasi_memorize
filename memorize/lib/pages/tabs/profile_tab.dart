@@ -1,85 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
+import '../../controllers/profile_tab_controller.dart';
 
-class ProfileTab extends StatefulWidget {
+class ProfileTab extends StatelessWidget {
   const ProfileTab({super.key});
-
-  @override
-  _ProfileTabState createState() => _ProfileTabState();
-}
-
-class _ProfileTabState extends State<ProfileTab> {
-  final ImagePicker _picker = ImagePicker();
-
-  bool _isEditingSaran = false;
-  bool _isSavingSaran = false;
-  late TextEditingController _saranEditController;
-
-  @override
-  void initState() {
-    super.initState();
-    _saranEditController = TextEditingController();
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final saranKesan = Provider.of<AuthProvider>(context, listen: false).saranKesan;
-      if (saranKesan != null && saranKesan.isNotEmpty) {
-        _saranEditController.text = saranKesan;
-      }
-    });
-  }
-
-  @override
-  void dispose() {
-    _saranEditController.dispose();
-    super.dispose();
-  }
-
-  Future<void> _pickAndUploadImage() async {
-    final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
-    if (image != null) {
-      final authProvider = Provider.of<AuthProvider>(context, listen: false);
-      if (authProvider.token != null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Mengupload foto...')),
-        );
-        await authProvider.uploadImage(authProvider.token!, image.path);
-      }
-    }
-  }
-
-  Future<void> _saveSaranKesan() async {
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    final token = authProvider.token;
-
-    if (token == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Sesi tidak valid'), backgroundColor: Colors.red),
-      );
-      return;
-    }
-
-    setState(() { _isSavingSaran = true; });
-
-    final result = await authProvider.updateSaranKesan(token, _saranEditController.text);
-
-    if (mounted) {
-      setState(() { _isSavingSaran = false; });
-
-      if (result['success'] == true) {
-        setState(() { _isEditingSaran = false; });
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Saran & Kesan berhasil disimpan!'), backgroundColor: Colors.green),
-        );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(result['message'] ?? 'Gagal menyimpan'), backgroundColor: Colors.red),
-        );
-      }
-    }
-  }
-
+  
   BoxDecoration _buildShadowBorder(Color borderColor) {
     return BoxDecoration(
       color: Color(0xFF0c1320),
@@ -172,7 +98,6 @@ class _ProfileTabState extends State<ProfileTab> {
                       ),
                     ),
                     SizedBox(width: 39),
-
                     ElevatedButton(
                       style: ElevatedButton.styleFrom(
                         backgroundColor: logoutBgColor,
@@ -211,180 +136,185 @@ class _ProfileTabState extends State<ProfileTab> {
     final Color labelColor = Color(0xFF62f4f4);
     final Color logoutButtonColor = Color(0xFFcc2424);
 
-    return Consumer<AuthProvider>(
-      builder: (ctx, auth, child) {
-        String? imageUrl = auth.profileImageUrl;
-        NetworkImage? profileImage;
-        if (imageUrl != null) {
-          final fullUrl = 'http://10.0.2.2:3000$imageUrl'; 
-          profileImage = NetworkImage(fullUrl);
-        }
-        
-        final saranKesan = auth.saranKesan ?? "Aplikasi ini sangat membantu dalam mencatat memo dan tugas. Fitur notifikasi dan konversi juga sangat berguna!";
+    return ChangeNotifierProvider(
+      create: (ctx) => ProfileTabController(
+        Provider.of<AuthProvider>(ctx, listen: false),
+      ),
+      child: Consumer2<AuthProvider, ProfileTabController>(
+        builder: (ctx, auth, controller, child) {
+          
+          String? imageUrl = auth.profileImageUrl;
+          NetworkImage? profileImage;
+          if (imageUrl != null) {
+            final fullUrl = '${auth.baseUrl}$imageUrl'; 
+            profileImage = NetworkImage(fullUrl);
+          }
+          
+          final saranKesan = auth.saranKesan ?? "Aplikasi ini sangat membantu dalam mencatat memo dan tugas. Fitur notifikasi dan konversi juga sangat berguna!";
 
-        return Scaffold(
-          backgroundColor: backgroundColor,
-          body: SafeArea(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.fromLTRB(28, 20, 28, 20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Align(
-                    alignment: Alignment.centerLeft,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(11),
-                      ),
-                      child: Text(
-                        'Profile',
-                        style: TextStyle(
-                          color: backgroundColor,
-                          fontSize: 18,
-                          fontWeight: FontWeight.w700,
+          return Scaffold(
+            backgroundColor: backgroundColor,
+            body: SafeArea(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.fromLTRB(28, 20, 28, 20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(11),
                         ),
-                      ),
-                    ),
-                  ),
-                  SizedBox(height: 30),
-
-                  Text(
-                    'This is Profile page',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 24,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  SizedBox(height: 40),
-
-                  Stack(
-                    alignment: Alignment.center,
-                    children: [
-                      CircleAvatar(
-                        radius: 122.5,
-                        backgroundColor: Colors.white,
-                        child: CircleAvatar(
-                          radius: 120,
-                          backgroundImage: profileImage,
-                          backgroundColor: Colors.grey[200],
-                          child: profileImage == null
-                              ? Icon(Icons.person, size: 100, color: Colors.grey[400])
-                              : null,
-                        ),
-                      ),
-                      if (auth.isUploading)
-                        Positioned.fill(
-                          child: CircularProgressIndicator(strokeWidth: 2, color: labelColor),
-                        ),
-                    ],
-                  ),
-                  SizedBox(height: 18),
-
-                  GestureDetector(
-                    onTap: auth.isUploading ? null : _pickAndUploadImage,
-                    child: Text(
-                      'Edit Photo',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(color: labelColor, fontSize: 14),
-                    ),
-                  ),
-                  SizedBox(height: 32),
-
-                  Container(
-                    height: 140,
-                    decoration: _buildShadowBorder(labelColor),
-                    padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 15),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Saran & Kesan',
+                        child: Text(
+                          'Profile',
                           style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 20,
-                            fontWeight: FontWeight.w500,
+                            color: backgroundColor,
+                            fontSize: 18,
+                            fontWeight: FontWeight.w700,
                           ),
                         ),
-                        SizedBox(height: 16),
-                        if (_isEditingSaran)
-                          Expanded(
-                            child: TextField(
-                              controller: _saranEditController,
-                              autofocus: true,
-                              style: TextStyle(color: labelColor, fontSize: 14),
-                              maxLines: null,
-                              decoration: InputDecoration(
-                                border: InputBorder.none,
-                                isDense: true,
-                                contentPadding: EdgeInsets.zero,
+                      ),
+                    ),
+                    SizedBox(height: 30),
+
+                    Text(
+                      'This is Profile page',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 24,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    SizedBox(height: 40),
+
+                    Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        CircleAvatar(
+                          radius: 122.5,
+                          backgroundColor: Colors.white,
+                          child: CircleAvatar(
+                            radius: 120,
+                            backgroundImage: profileImage,
+                            backgroundColor: Colors.grey[200],
+                            child: profileImage == null
+                                ? Icon(Icons.person, size: 100, color: Colors.grey[400])
+                                : null,
+                          ),
+                        ),
+                        if (auth.isUploading)
+                          Positioned.fill(
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: Colors.black.withOpacity(0.5),
+                                shape: BoxShape.circle,
+                              ),
+                              child: Center(
+                                child: CircularProgressIndicator(strokeWidth: 3, color: labelColor)
                               ),
                             ),
-                          )
-                        else
-                          Text(
-                            saranKesan,
-                            style: TextStyle(color: labelColor, fontSize: 14),
-                            maxLines: 3,
-                            overflow: TextOverflow.ellipsis,
                           ),
                       ],
                     ),
-                  ),
-                  SizedBox(height: 12),
+                    SizedBox(height: 18),
 
-                  if (_isSavingSaran)
-                    Center(child: CircularProgressIndicator(color: labelColor, strokeWidth: 2))
-                  else
                     GestureDetector(
-                      onTap: () {
-                        if (_isEditingSaran) {
-                          _saveSaranKesan();
-                        } else {
-                          setState(() {
-                            _saranEditController.text = saranKesan;
-                            _isEditingSaran = true;
-                          });
-                        }
-                      },
+                      onTap: auth.isUploading ? null : () => controller.pickAndUploadImage(context),
                       child: Text(
-                        _isEditingSaran ? 'Save' : 'Edit',
+                        'Edit Photo',
                         textAlign: TextAlign.center,
                         style: TextStyle(color: labelColor, fontSize: 14),
                       ),
                     ),
-                  SizedBox(height: 40),
-                  
-                  if (auth.isLoading)
-                    CircularProgressIndicator(color: logoutButtonColor)
-                  else
-                    ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: logoutButtonColor,
-                        foregroundColor: Colors.white,
-                        fixedSize: Size(180, 50),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(25),
-                        ),
-                      ),
-                      onPressed: () => _showLogoutDialog(context),
-                      child: Text(
-                        'Logout',
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.w500,
-                        ),
+                    SizedBox(height: 32),
+
+                    Container(
+                      height: 140,
+                      decoration: _buildShadowBorder(labelColor),
+                      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 15),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Saran & Kesan',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 20,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          SizedBox(height: 16),
+                          if (controller.isEditingSaran)
+                            Expanded(
+                              child: TextField(
+                                controller: controller.saranEditController,
+                                autofocus: true,
+                                style: TextStyle(color: labelColor, fontSize: 14),
+                                maxLines: null,
+                                decoration: InputDecoration(
+                                  border: InputBorder.none,
+                                  isDense: true,
+                                  contentPadding: EdgeInsets.zero,
+                                ),
+                              ),
+                            )
+                          else
+                            Text(
+                              saranKesan,
+                              style: TextStyle(color: labelColor, fontSize: 14),
+                              maxLines: 3,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                        ],
                       ),
                     ),
-                ],
+                    SizedBox(height: 12),
+
+                    if (controller.isSavingSaran)
+                      Center(child: CircularProgressIndicator(color: labelColor, strokeWidth: 2))
+                    else
+                      GestureDetector(
+                        onTap: () => controller.handleEditSaveClick(context),
+                        child: Text(
+                          controller.isEditingSaran ? 'Save' : 'Edit',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(color: labelColor, fontSize: 14),
+                        ),
+                      ),
+                    SizedBox(height: 40),
+                    
+                    if (auth.isLoading)
+                      CircularProgressIndicator(color: logoutButtonColor)
+                    else
+                      ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: logoutButtonColor,
+                          foregroundColor: Colors.white,
+                          fixedSize: Size(180, 50),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(25),
+                          ),
+                        ),
+                        onPressed: () => _showLogoutDialog(context),
+                        child: Text(
+                          'Logout',
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
               ),
             ),
-          ),
-        );
-      },
+          );
+        },
+      ),
     );
   }
 }
