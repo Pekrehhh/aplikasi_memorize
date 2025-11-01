@@ -2,14 +2,9 @@ import 'package:flutter/material.dart';
 import '../currency_conv_screen.dart'; 
 import '../time_conv_screen.dart';   
 
-class KonverterTab extends StatefulWidget {
+class KonverterTab extends StatelessWidget {
   const KonverterTab({Key? key}) : super(key: key);
 
-  @override
-  State<KonverterTab> createState() => _KonverterTabState();
-}
-
-class _KonverterTabState extends State<KonverterTab> {
   Widget _buildKonversiCard({
     required BuildContext context,
     required String title,
@@ -43,6 +38,7 @@ class _KonverterTabState extends State<KonverterTab> {
                 child: Icon(icon, color: iconColor, size: 24),
               ),
             ),
+            
             Positioned(
               left: 95,
               child: Text(
@@ -62,40 +58,53 @@ class _KonverterTabState extends State<KonverterTab> {
 
   @override
   Widget build(BuildContext context) {
-
     final Color backgroundColor = Color(0xFF0c1320);
     final Color buttonColor = Color(0xFF24cccc);
     final Color buttonTextColor = Color(0xFF0c1320);
     final Color iconDarkBg = Color(0xFF065353);
     final Color iconLightBg = Colors.white;
+    final Color badgeBackgroundColor = Color(0xFF1A5555); // Warna teal gelap kayak gambar 2
     
     return Scaffold(
       backgroundColor: backgroundColor,
-
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 30.0, vertical: 20.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6), 
+      appBar: AppBar(
+        backgroundColor: backgroundColor,
+        elevation: 0,
+        automaticallyImplyLeading: false,
+        toolbarHeight: 70,
+        flexibleSpace: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 30.0, vertical: 16.0),
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(11),
+                  color: badgeBackgroundColor,
+                  borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
                   'Converter',
                   style: TextStyle(
-                    color: backgroundColor,
+                    color: Colors.white, // PUTIH BRO! 
                     fontSize: 18,
-                    fontWeight: FontWeight.w700,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
               ),
+            ),
+          ),
+        ),
+      ),
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 30.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SizedBox(height: 80),
 
-              SizedBox(height: 100),
-
-              Container(
+              SizedBox(
                 width: double.infinity,
                 child: Text(
                   'What activity do you want\nto use?',

@@ -14,8 +14,9 @@ class _HomeScreenState extends State<HomeScreen> {
   final Color backgroundColor = Color(0xFF0c1320);
   final Color activeColor = Colors.white;
   final Color inactiveColor = Color(0xFF24cccc);
+  final Color borderColor = Color(0xFF62f4f4);
 
-  static const List<Widget> _widgetOptions = <Widget>[
+  static final List<Widget> _widgetOptions = <Widget>[
     NotesTab(),
     KonverterTab(),
     ProfileTab(),
@@ -36,17 +37,8 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
 
       bottomNavigationBar: Container(
-        height: 80,
-        decoration: BoxDecoration(
-          color: backgroundColor,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.25),
-              blurRadius: 4,
-              offset: Offset(0, -4),
-            ),
-          ],
-        ),
+        height: 80, 
+        
         child: BottomNavigationBar(
           items: <BottomNavigationBarItem>[
             BottomNavigationBarItem(
@@ -62,14 +54,18 @@ class _HomeScreenState extends State<HomeScreen> {
               label: 'Profil',
             ),
           ],
+          iconSize: 32.0, 
           currentIndex: _selectedIndex,
           backgroundColor: Colors.transparent,
           elevation: 0,
           selectedItemColor: activeColor,
           unselectedItemColor: inactiveColor,
           onTap: _onItemTapped,
+          type: BottomNavigationBarType.fixed,
           showSelectedLabels: true,
-          showUnselectedLabels: false,
+          showUnselectedLabels: true,
+          selectedFontSize: 10,
+          unselectedFontSize: 10,
         ),
       ),
     );

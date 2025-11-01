@@ -67,7 +67,7 @@ class _CurrencyConverterScreenState extends State<CurrencyConverterScreen> {
     }
 
     if (provider.rates.isEmpty) {
-       ScaffoldMessenger.of(context).showSnackBar(
+      ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Gagal melakukan konversi. Cek koneksi atau API Key.'),
           backgroundColor: Colors.red,
