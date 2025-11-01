@@ -11,10 +11,11 @@ class AuthProvider with ChangeNotifier {
   String? _email;
   String? _profileImageUrl;
   bool _isUploading = false;
-
   String? get email => _email;
   String? get profileImageUrl => _profileImageUrl;
   bool get isUploading => _isUploading;
+  String? _saranKesan;
+  String? get saranKesan => _saranKesan;
 
   bool get isAuth {
     return _token != null;
@@ -82,6 +83,7 @@ class AuthProvider with ChangeNotifier {
     if (result['success'] == true) {
       _email = result['data']['email'];
       _profileImageUrl = result['data']['profile_image_url'];
+      _saranKesan = result['data']['saran_kesan'];
       notifyListeners();
     }
   }
@@ -100,5 +102,14 @@ class AuthProvider with ChangeNotifier {
 
     _isUploading = false;
     notifyListeners();
+  }
+
+  Future<Map<String, dynamic>> updateSaranKesan(String token, String saranKesan) async {
+    final result = await _apiService.updateSaranKesan(token, saranKesan);
+    if (result['success'] == true) {
+      _saranKesan = saranKesan;
+      notifyListeners();
+    }
+    return result;
   }
 }

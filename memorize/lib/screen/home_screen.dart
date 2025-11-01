@@ -37,7 +37,7 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
 
       bottomNavigationBar: Container(
-        height: 80, 
+        height: 90, 
         
         child: BottomNavigationBar(
           items: <BottomNavigationBarItem>[

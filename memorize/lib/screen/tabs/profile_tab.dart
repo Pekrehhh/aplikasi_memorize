@@ -14,13 +14,20 @@ class _ProfileTabState extends State<ProfileTab> {
   final ImagePicker _picker = ImagePicker();
 
   bool _isEditingSaran = false;
-  String _saranText = "Aplikasi ini sangat membantu dalam mencatat memo dan tugas. Fitur notifikasi dan konversi juga sangat berguna!";
+  bool _isSavingSaran = false;
   late TextEditingController _saranEditController;
 
   @override
   void initState() {
     super.initState();
-    _saranEditController = TextEditingController(text: _saranText);
+    _saranEditController = TextEditingController();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final saranKesan = Provider.of<AuthProvider>(context, listen: false).saranKesan;
+      if (saranKesan != null && saranKesan.isNotEmpty) {
+        _saranEditController.text = saranKesan;
+      }
+    });
   }
 
   @override
@@ -38,6 +45,37 @@ class _ProfileTabState extends State<ProfileTab> {
           SnackBar(content: Text('Mengupload foto...')),
         );
         await authProvider.uploadImage(authProvider.token!, image.path);
+      }
+    }
+  }
+
+  Future<void> _saveSaranKesan() async {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final token = authProvider.token;
+
+    if (token == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Sesi tidak valid'), backgroundColor: Colors.red),
+      );
+      return;
+    }
+
+    setState(() { _isSavingSaran = true; });
+
+    final result = await authProvider.updateSaranKesan(token, _saranEditController.text);
+
+    if (mounted) {
+      setState(() { _isSavingSaran = false; });
+
+      if (result['success'] == true) {
+        setState(() { _isEditingSaran = false; });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Saran & Kesan berhasil disimpan!'), backgroundColor: Colors.green),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(result['message'] ?? 'Gagal menyimpan'), backgroundColor: Colors.red),
+        );
       }
     }
   }
@@ -181,6 +219,8 @@ class _ProfileTabState extends State<ProfileTab> {
           final fullUrl = 'http://10.0.2.2:3000$imageUrl'; 
           profileImage = NetworkImage(fullUrl);
         }
+        
+        final saranKesan = auth.saranKesan ?? "Aplikasi ini sangat membantu dalam mencatat memo dan tugas. Fitur notifikasi dan konversi juga sangat berguna!";
 
         return Scaffold(
           backgroundColor: backgroundColor,
@@ -286,7 +326,7 @@ class _ProfileTabState extends State<ProfileTab> {
                           )
                         else
                           Text(
-                            _saranText,
+                            saranKesan,
                             style: TextStyle(color: labelColor, fontSize: 14),
                             maxLines: 3,
                             overflow: TextOverflow.ellipsis,
@@ -296,23 +336,26 @@ class _ProfileTabState extends State<ProfileTab> {
                   ),
                   SizedBox(height: 12),
 
-                  GestureDetector(
-                    onTap: () {
-                      setState(() {
+                  if (_isSavingSaran)
+                    Center(child: CircularProgressIndicator(color: labelColor, strokeWidth: 2))
+                  else
+                    GestureDetector(
+                      onTap: () {
                         if (_isEditingSaran) {
-                          _saranText = _saranEditController.text;
+                          _saveSaranKesan();
                         } else {
-                          _saranEditController.text = _saranText;
+                          setState(() {
+                            _saranEditController.text = saranKesan;
+                            _isEditingSaran = true;
+                          });
                         }
-                        _isEditingSaran = !_isEditingSaran;
-                      });
-                    },
-                    child: Text(
-                      _isEditingSaran ? 'Save' : 'Edit',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(color: labelColor, fontSize: 14),
+                      },
+                      child: Text(
+                        _isEditingSaran ? 'Save' : 'Edit',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(color: labelColor, fontSize: 14),
+                      ),
                     ),
-                  ),
                   SizedBox(height: 40),
                   
                   if (auth.isLoading)

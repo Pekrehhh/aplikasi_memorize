@@ -25,16 +25,14 @@ const pool = new Pool({
 
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    // Buat folder 'uploads' jika belum ada
     const fs = require('fs');
     const dir = 'uploads';
     if (!fs.existsSync(dir)){
         fs.mkdirSync(dir);
     }
-    cb(null, 'uploads/'); // Simpan file di folder 'uploads'
+    cb(null, 'uploads/');
   },
   filename: function (req, file, cb) {
-    // Buat nama file unik: userId-timestamp.jpg
     const uniqueSuffix = Date.now() + path.extname(file.originalname);
     cb(null, req.user.userId + '-' + uniqueSuffix);
   }
@@ -215,7 +213,7 @@ app.get('/api/profile/me', authMiddleware, async (req, res) => {
   try {
     const userId = req.user.userId;
     const userResult = await pool.query(
-      "SELECT id, email, profile_image_url FROM users WHERE id = $1",
+      "SELECT id, email, profile_image_url, saran_kesan FROM users WHERE id = $1",
       [userId]
     );
 
@@ -237,10 +235,8 @@ app.post('/api/profile/upload', [authMiddleware, upload.single('profileImage')],
     }
 
     const userId = req.user.userId;
-    // Kita simpan path relatifnya (e.g., /uploads/1-123456.jpg)
     const imageUrl = '/uploads/' + req.file.filename;
 
-    // Update database
     const updateResult = await pool.query(
       "UPDATE users SET profile_image_url = $1 WHERE id = $2 RETURNING profile_image_url",
       [imageUrl, userId]
@@ -249,6 +245,35 @@ app.post('/api/profile/upload', [authMiddleware, upload.single('profileImage')],
     res.json({
       message: 'Upload berhasil',
       profile_image_url: updateResult.rows[0].profile_image_url
+    });
+
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+app.put('/api/profile/saran-kesan', authMiddleware, async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    const { saran_kesan } = req.body;
+
+    if (saran_kesan === undefined) {
+      return res.status(400).json({ message: 'saran_kesan dibutuhkan' });
+    }
+
+    const updateResult = await pool.query(
+      "UPDATE users SET saran_kesan = $1 WHERE id = $2 RETURNING saran_kesan",
+      [saran_kesan, userId]
+    );
+
+    if (updateResult.rows.length === 0) {
+      return res.status(404).json({ message: 'User tidak ditemukan' });
+    }
+
+    res.json({
+      message: 'Saran & Kesan berhasil diupdate',
+      saran_kesan: updateResult.rows[0].saran_kesan
     });
 
   } catch (err) {

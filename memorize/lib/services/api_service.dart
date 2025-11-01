@@ -4,7 +4,7 @@ import '../models/note.dart';
 
 class ApiService {
   static const String _baseUrl = 'http://10.0.2.2:3000/api';
-  // static const String _baseUrl = 'http://192.168.1.3:3000/api';
+  // static const String _baseUrl = 'http://192.168.1.x:3000/api';
   // (atau 'http://localhost:3000' jika pakai Web/iOS)
 
   Future<Map<String, dynamic>> login(String username, String password) async {
@@ -170,6 +170,28 @@ class ApiService {
       return {'success': false, 'message': 'Error koneksi: $e'};
     }
   }
+
+  Future<Map<String, dynamic>> updateSaranKesan(String token, String saranKesan) async {
+  final url = Uri.parse('$_baseUrl/profile/saran-kesan');
+  try {
+    final response = await http.put(
+      url,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+      body: json.encode({'saran_kesan': saranKesan}),
+    );
+
+    if (response.statusCode == 200) {
+      return {'success': true, 'message': 'Saran & Kesan berhasil disimpan'};
+    } else {
+      return {'success': false, 'message': 'Gagal menyimpan saran & kesan'};
+    }
+  } catch (e) {
+    return {'success': false, 'message': 'Error koneksi: $e'};
+  }
+}
 
   Future<String?> getTimezoneDbApiKey() async {
     final url = Uri.parse('${_baseUrl.replaceAll('/api', '')}/api/config/keys'); 
