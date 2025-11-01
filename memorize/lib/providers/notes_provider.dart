@@ -8,7 +8,7 @@ class NotesProvider with ChangeNotifier {
   List<Note> _masterNotes = [];
   String _searchQuery = '';
 
-  bool _isLoading = false;
+  final bool _isLoading = false;
 
   bool get isLoading => _isLoading;
 

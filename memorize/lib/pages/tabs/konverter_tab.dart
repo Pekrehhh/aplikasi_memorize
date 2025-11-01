@@ -3,7 +3,7 @@ import '../screens/currency_conv_screen.dart';
 import '../screens/time_conv_screen.dart';   
 
 class KonverterTab extends StatelessWidget {
-  const KonverterTab({Key? key}) : super(key: key);
+  const KonverterTab({super.key});
 
   Widget _buildKonversiCard({
     required BuildContext context,
@@ -86,7 +86,7 @@ class KonverterTab extends StatelessWidget {
                 child: Text(
                   'Converter',
                   style: TextStyle(
-                    color: Colors.white, // PUTIH BRO! 
+                    color: Colors.white,
                     fontSize: 18,
                     fontWeight: FontWeight.w600,
                   ),

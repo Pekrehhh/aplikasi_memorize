@@ -7,7 +7,7 @@ import '../screens/new_memo_screen.dart';
 import '../../services/notification_service.dart';
 
 class NotesTab extends StatefulWidget {
-  const NotesTab({Key? key}) : super(key: key);
+  const NotesTab({super.key});
 
   @override
   _NotesTabState createState() => _NotesTabState();

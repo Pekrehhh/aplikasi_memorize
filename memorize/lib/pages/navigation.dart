@@ -36,7 +36,7 @@ class _HomeScreenState extends State<HomeScreen> {
         child: _widgetOptions.elementAt(_selectedIndex),
       ),
 
-      bottomNavigationBar: Container(
+      bottomNavigationBar: SizedBox(
         height: 80, 
         
         child: BottomNavigationBar(
