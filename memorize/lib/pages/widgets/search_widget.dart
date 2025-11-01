@@ -5,9 +5,9 @@ class SearchWidget extends StatelessWidget {
   final NotesTabController controller;
 
   const SearchWidget({
-    Key? key,
+    super.key,
     required this.controller,
-  }) : super(key: key);
+  });
   
   final Color backgroundColor = const Color(0xFF0c1320);
   final Color searchBorderColor = const Color(0xFF62f4f4);

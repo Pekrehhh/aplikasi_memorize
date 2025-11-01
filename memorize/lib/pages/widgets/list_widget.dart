@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
-
 import '../../controllers/notes_tab_controller.dart';
 import '../../providers/notes_provider.dart';
 
@@ -9,9 +8,9 @@ class ListWidget extends StatelessWidget {
   final NotesTabController controller;
 
   const ListWidget({
-    Key? key,
+    super.key,
     required this.controller,
-  }) : super(key: key);
+  });
 
   // Styling
   final Color headerAccentColor = const Color(0xFF24cccc);
