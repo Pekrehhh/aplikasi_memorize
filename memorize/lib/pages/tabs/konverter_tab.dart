@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../currency_conv_screen.dart'; 
-import '../time_conv_screen.dart';   
+import '../screens/currency_conv_screen.dart'; 
+import '../screens/time_conv_screen.dart';   
 
 class KonverterTab extends StatelessWidget {
   const KonverterTab({Key? key}) : super(key: key);
@@ -63,7 +63,7 @@ class KonverterTab extends StatelessWidget {
     final Color buttonTextColor = Color(0xFF0c1320);
     final Color iconDarkBg = Color(0xFF065353);
     final Color iconLightBg = Colors.white;
-    final Color badgeBackgroundColor = Color(0xFF1A5555); // Warna teal gelap kayak gambar 2
+    final Color badgeBackgroundColor = Color(0xFF1A5555);
     
     return Scaffold(
       backgroundColor: backgroundColor,
@@ -81,7 +81,7 @@ class KonverterTab extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
                 decoration: BoxDecoration(
                   color: badgeBackgroundColor,
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(11),
                 ),
                 child: Text(
                   'Converter',

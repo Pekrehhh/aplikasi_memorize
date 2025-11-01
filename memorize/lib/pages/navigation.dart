@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:memorize/screen/tabs/konverter_tab.dart'; 
-import 'package:memorize/screen/tabs/notes_tab.dart';
-import 'package:memorize/screen/tabs/profile_tab.dart';
+import 'package:memorize/pages/tabs/konverter_tab.dart'; 
+import 'package:memorize/pages/tabs/notes_tab.dart';
+import 'package:memorize/pages/tabs/profile_tab.dart';
 
 class HomeScreen extends StatefulWidget {
   @override
@@ -37,7 +37,7 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
 
       bottomNavigationBar: Container(
-        height: 90, 
+        height: 80, 
         
         child: BottomNavigationBar(
           items: <BottomNavigationBarItem>[

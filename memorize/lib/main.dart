@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:memorize/providers/notes_provider.dart';
-import 'package:memorize/screen/home_screen.dart';
+import 'package:memorize/pages/navigation.dart';
 import 'package:provider/provider.dart';
 import 'package:memorize/providers/auth_provider.dart';
-import 'package:memorize/screen/login_screen.dart';
-import 'package:memorize/screen/splash_screen.dart';
+import 'package:memorize/pages/auth/login_screen.dart';
+import 'package:memorize/pages/auth/splash_screen.dart';
 import 'package:memorize/providers/currency_provider.dart';
 import 'package:memorize/services/notification_service.dart';
 

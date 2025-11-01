@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
-import '../providers/auth_provider.dart';
-import '../providers/notes_provider.dart';
-import '../services/notification_service.dart';
+import '../../providers/auth_provider.dart';
+import '../../providers/notes_provider.dart';
+import '../../services/notification_service.dart';
 
 class NewMemoScreen extends StatefulWidget {
 
@@ -255,13 +255,13 @@ class _NewMemoScreenState extends State<NewMemoScreen> {
             GestureDetector(
               onTap: _pickDateTime,
               child: Container(
-                height: 71,
+                height: 70,
                 width: double.infinity,
                 decoration: _buildShadowBorder(labelColor),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.calendar_today, color: labelColor, size: 30),
+                    Icon(Icons.calendar_today, color: labelColor, size: 27),
                     SizedBox(width: 16),
                     Text(
                       _selectedDateTime == null 
@@ -290,7 +290,7 @@ class _NewMemoScreenState extends State<NewMemoScreen> {
             SizedBox(height: 36),
 
             Container(
-              height: 120,
+              height: 130,
               width: double.infinity,
               decoration: _buildShadowBorder(labelColor),
               padding: const EdgeInsets.all(20),

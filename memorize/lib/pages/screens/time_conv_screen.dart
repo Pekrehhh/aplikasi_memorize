@@ -3,7 +3,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:intl/intl.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
-import '../services/api_service.dart';
+import '../../services/api_service.dart';
 
 class TimeConverterScreen extends StatefulWidget {
   @override

@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/notes_provider.dart';
-import '../new_memo_screen.dart';
+import '../screens/new_memo_screen.dart';
 import '../../services/notification_service.dart';
 
 class NotesTab extends StatefulWidget {
