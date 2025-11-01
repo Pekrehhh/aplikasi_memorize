@@ -3,8 +3,8 @@ import 'dart:convert';
 import '../models/note.dart';
 
 class ApiService {
-  static const String _baseUrl = 'http://10.0.2.2:3000/api';
-  // static const String _baseUrl = 'http://192.168.1.x:3000/api';
+  // static const String _baseUrl = 'http://10.0.2.2:3000/api';
+  static const String _baseUrl = 'http://192.168.1.3:3000/api';
   // (atau 'http://localhost:3000' jika pakai Web/iOS)
 
   Future<Map<String, dynamic>> login(String username, String password) async {
