@@ -41,9 +41,7 @@ class LoginController with ChangeNotifier {
         ),
       );
     }
-  }
-  
-  void _setLoading(bool loading) {
+  }  void _setLoading(bool loading) {
     _isLoading = loading;
     notifyListeners();
   }

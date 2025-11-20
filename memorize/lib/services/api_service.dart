@@ -3,10 +3,11 @@ import 'dart:convert';
 import '../models/note.dart';
 
 class ApiService {
-  static const String _baseUrl = 'http://10.0.2.2:3000/api';
-  // static const String _baseUrl = 'http://192.168.1.x:3000/api';
-  // (atau 'http://localhost:3000' jika pakai Web/iOS)
+  // static const String _baseUrl = 'http://10.0.2.2:3000/api'; // Gunakan ini untuk emulator Android
+  // static const String _baseUrl = 'http://localhost:3000'; // Gunakan ini untuk Flutter di desktop atau web
+  static const String _baseUrl = 'http://192.168.1.2:3000/api'; // Gunakan ini untuk perangkat fisik di jaringan lokal
 
+  // --- FUNGSI AUTH (Login) ---
   Future<Map<String, dynamic>> login(String username, String password) async {
     final url = Uri.parse('$_baseUrl/auth/login');
     try {
@@ -29,6 +30,7 @@ class ApiService {
     }
   }
 
+  // --- FUNGSI AUTH (Register) ---
   Future<Map<String, dynamic>> register(String username, String email, String password) async {
     final url = Uri.parse('$_baseUrl/auth/register');
     try {
@@ -129,6 +131,8 @@ class ApiService {
     }
   }
 
+  // --- FUNGSI PROFIL (BARU!) ---
+// GET: Ambil data profil
   Future<Map<String, dynamic>> getProfile(String token) async {
     final url = Uri.parse('$_baseUrl/profile/me');
     try {
