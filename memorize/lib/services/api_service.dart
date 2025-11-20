@@ -1,11 +1,31 @@
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'dart:io';
+import 'package:flutter/foundation.dart';
 import '../models/note.dart';
 
 class ApiService {
-  // static const String _baseUrl = 'http://10.0.2.2:3000/api'; // Gunakan ini untuk emulator Android
-  // static const String _baseUrl = 'http://localhost:3000'; // Gunakan ini untuk Flutter di desktop atau web
-  static const String _baseUrl = 'http://192.168.1.2:3000/api'; // Gunakan ini untuk perangkat fisik di jaringan lokal
+  // static const String _devicePhysicalUrl = 'http://10.0.2.2:3000/api';
+  static const String _devicePhysicalUrl = 'http://192.168.1.2:3000/api';
+  static const String _webDesktopUrl = 'http://localhost:3000/api';
+
+  static String get _baseUrl {
+    if (kIsWeb) {
+      // Web/Flutter Web
+      return _webDesktopUrl;
+    } else if (Platform.isAndroid) {
+      // Android - gunakan IP device fisik
+      return _devicePhysicalUrl;
+    } else if (Platform.isIOS) {
+      // iOS Simulator atau device fisik - gunakan localhost
+      return _webDesktopUrl;
+    } else if (Platform.isMacOS || Platform.isLinux || Platform.isWindows) {
+      // Desktop - localhost
+      return _webDesktopUrl;
+    }
+    // Default fallback
+    return _devicePhysicalUrl;
+  }
 
   // --- FUNGSI AUTH (Login) ---
   Future<Map<String, dynamic>> login(String username, String password) async {
