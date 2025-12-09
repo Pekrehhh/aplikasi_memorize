@@ -33,15 +33,15 @@ class CurrencyProvider with ChangeNotifier {
     _isLoading = true;
     _error = null;
 
-    notifyListeners(); 
-
-    final uri = Uri.parse('$_apiUrl$_apiKey/latest/USD');
+    notifyListeners();
 
     try {
+      final uri = Uri.parse(_apiUrl);
+
       final client = HttpClient();
       client.connectionTimeout = const Duration(seconds: 5);
       final request = await client.getUrl(uri);
-      final response = await request.close().timeout(const Duration(seconds: 8));
+      final response = await request.close();
       final bodyString = await response.transform(utf8.decoder).join();
       final body = json.decode(bodyString);
 
