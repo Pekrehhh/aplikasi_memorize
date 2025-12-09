@@ -50,8 +50,7 @@ class NotesProvider with ChangeNotifier {
   ) async {
     try {
       final box = Hive.box<Note>('notes');
-
-      // generate id: max existing id + 1 or timestamp
+      
       int nextId = 1;
       if (box.values.isNotEmpty) {
         final ids = box.values.map((e) => e.id).toList();

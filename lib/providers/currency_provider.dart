@@ -5,7 +5,7 @@ import 'package:intl/intl.dart';
 
 class CurrencyProvider with ChangeNotifier {
   final String _apiKey = "214eeb10fdcd573416707973";
-  final String _apiUrl = "https://v6.exchangerate-api.com/v6/";
+  final String _apiUrl = "https://v6.exchangerate-api.com/v6/214eeb10fdcd573416707973/latest/USD";
 
   Map<String, double> _rates = {};
   List<String> _currencies = [];

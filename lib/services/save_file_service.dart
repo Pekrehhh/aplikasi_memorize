@@ -9,8 +9,6 @@ import 'package:path_provider/path_provider.dart';
 import 'package:file_picker/file_picker.dart';
 
 class SaveFileService {
-  /// Export 'users' and 'notes' boxes to a JSON file placed in app documents.
-  /// Returns the written file path on success.
   Future<String> exportToJsonFile() async {
     final usersBox = Hive.box<User>('users');
     final notesBox = Hive.box<Note>('notes');
@@ -34,8 +32,6 @@ class SaveFileService {
     return file.path;
   }
 
-  /// Let user pick a JSON file and import it. This will replace current boxes' contents.
-  /// Returns true if import succeeded.
   Future<bool> importFromJsonFile() async {
     try {
       final result = await FilePicker.platform.pickFiles(
@@ -54,8 +50,7 @@ class SaveFileService {
 
       final usersBox = Hive.box<User>('users');
       final notesBox = Hive.box<Note>('notes');
-
-      // Clear existing data
+      
       await usersBox.clear();
       await notesBox.clear();
 

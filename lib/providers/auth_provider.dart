@@ -68,8 +68,6 @@ class AuthProvider with ChangeNotifier {
     notifyListeners();
 
     final usersBox = Hive.box<User>('users');
-
-    // validation: unique username/email
     final usernameExists = usersBox.values.any((u) => u.username == username);
     if (usernameExists) {
       _isLoading = false;

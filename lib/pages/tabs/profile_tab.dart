@@ -151,7 +151,7 @@ class ProfileTab extends StatelessWidget {
             profileImage = FileImage(File(imagePath));
           }
           
-          final saranKesan = auth.saranKesan ?? "Aplikasi ini sangat membantu dalam mencatat memo dan tugas. Fitur notifikasi dan konversi juga sangat berguna!";
+          final saranKesan = auth.saranKesan ?? "Masukan saran dan kesan Anda di sini.";
 
           return Scaffold(
             backgroundColor: backgroundColor,

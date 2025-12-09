@@ -15,13 +15,10 @@ import 'package:memorize/pages/tools/converter_page.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await NotificationService().init();
-  
-  // Initialize Hive and register adapters
   await Hive.initFlutter();
   Hive.registerAdapter(UserAdapter());
   Hive.registerAdapter(NoteAdapter());
-
-  // Open boxes used by the app
+  
   await Hive.openBox<User>('users');
   await Hive.openBox<Note>('notes');
   runApp(
