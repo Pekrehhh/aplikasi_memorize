@@ -10,7 +10,6 @@ import 'package:memorize/services/notification_service.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:memorize/models/user.dart';
 import 'package:memorize/models/note.dart';
-import 'package:memorize/pages/tools/converter_page.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -49,9 +48,6 @@ class Memorize extends StatelessWidget {
         primarySwatch: Colors.blue,
       ),
       debugShowCheckedModeBanner: false,
-      routes: {
-        '/converter': (ctx) => const ConverterPage(),
-      },
       home: Consumer<AuthProvider>(
         builder: (ctx, auth, _) {
           if (auth.isAuth) { 
