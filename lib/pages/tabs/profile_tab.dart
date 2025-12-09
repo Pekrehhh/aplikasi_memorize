@@ -179,8 +179,8 @@ class ProfileTab extends StatelessWidget {
                         ),
                       ),
                     ),
+                    
                     SizedBox(height: 30),
-
                     Text(
                       'This is Profile page',
                       textAlign: TextAlign.center,
@@ -190,8 +190,8 @@ class ProfileTab extends StatelessWidget {
                         fontWeight: FontWeight.w500,
                       ),
                     ),
+                    
                     SizedBox(height: 40),
-
                     Stack(
                       alignment: Alignment.center,
                       children: [
@@ -221,8 +221,8 @@ class ProfileTab extends StatelessWidget {
                           ),
                       ],
                     ),
+                    
                     SizedBox(height: 18),
-
                     GestureDetector(
                       onTap: auth.isUploading ? null : () => controller.pickAndUploadImage(context),
                       child: Text(
@@ -231,8 +231,8 @@ class ProfileTab extends StatelessWidget {
                         style: TextStyle(color: labelColor, fontSize: 14),
                       ),
                     ),
+                    
                     SizedBox(height: 32),
-
                     Container(
                       height: 140,
                       decoration: _buildShadowBorder(labelColor),
@@ -273,8 +273,8 @@ class ProfileTab extends StatelessWidget {
                         ],
                       ),
                     ),
+                    
                     SizedBox(height: 12),
-
                     if (controller.isSavingSaran)
                       Center(child: CircularProgressIndicator(color: labelColor, strokeWidth: 2))
                     else
@@ -286,9 +286,8 @@ class ProfileTab extends StatelessWidget {
                           style: TextStyle(color: labelColor, fontSize: 14),
                         ),
                       ),
-                    SizedBox(height: 40),
                     
-                    // Save & Load buttons
+                    SizedBox(height: 40),                    
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
@@ -333,7 +332,8 @@ class ProfileTab extends StatelessWidget {
                             ),
                           ),
                         ),
-                        SizedBox(width: 20),
+                        
+                        SizedBox(width: 20),                        
                         ElevatedButton(
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Color(0xFF065353),
@@ -377,8 +377,8 @@ class ProfileTab extends StatelessWidget {
                         ),
                       ],
                     ),
-                    SizedBox(height: 40),
                     
+                    SizedBox(height: 40),                    
                     if (auth.isLoading)
                       CircularProgressIndicator(color: logoutButtonColor)
                     else
