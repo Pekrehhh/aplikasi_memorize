@@ -7,10 +7,22 @@ import 'package:memorize/pages/auth/login_screen.dart';
 import 'package:memorize/pages/auth/splash_screen.dart';
 import 'package:memorize/providers/currency_provider.dart';
 import 'package:memorize/services/notification_service.dart';
+import 'package:hive_flutter/hive_flutter.dart';
+import 'package:memorize/models/user.dart';
+import 'package:memorize/models/note.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await NotificationService().init();
+  
+  // Initialize Hive and register adapters
+  await Hive.initFlutter();
+  Hive.registerAdapter(UserAdapter());
+  Hive.registerAdapter(NoteAdapter());
+
+  // Open boxes used by the app
+  await Hive.openBox<User>('users');
+  await Hive.openBox<Note>('notes');
   runApp(
     MultiProvider(
       providers: [

@@ -1,12 +1,28 @@
-import 'dart:convert';
+import 'package:hive/hive.dart';
+part 'note.g.dart'; 
 
-class Note {
+@HiveType(typeId: 1)
+class Note extends HiveObject {
+  @HiveField(0)
   final int id;
-  final String title;
-  final String content;
-  final String color;
-  final DateTime createdAt;
-  final DateTime? reminderAt;
+  
+  @HiveField(1)
+  String title;
+  
+  @HiveField(2)
+  String content;
+  
+  @HiveField(3)
+  String color;
+  
+  @HiveField(4)
+  DateTime createdAt;
+  
+  @HiveField(5)
+  DateTime? reminderAt;
+  
+  @HiveField(6)
+  final String userEmail;
 
   Note({
     required this.id,
@@ -15,31 +31,32 @@ class Note {
     required this.color,
     required this.createdAt,
     this.reminderAt,
+    required this.userEmail,
   });
 
-  factory Note.fromJson(Map<String, dynamic> json) {
-    String parsedContent;
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'title': title,
+      'content': content,
+      'color': color,
+      'createdAt': createdAt.toIso8601String(),
+      'reminderAt': reminderAt?.toIso8601String(),
+      'userEmail': userEmail,
+    };
+  }
 
-    try {
-      var decoded = jsonDecode(json['content']);
-      if (decoded is List) {
-        parsedContent = decoded.map((item) => item['insert']).join('');
-      } else {
-        parsedContent = json['content']?.toString() ?? '';
-      }
-    } catch (e) {
-      parsedContent = json['content']?.toString() ?? '';
-    }
-
+  factory Note.fromMap(Map<String, dynamic> map) {
     return Note(
-      id: json['id'],
-      title: json['title'],
-      content: parsedContent,
-      color: json['color'] ?? '#FFFF99',
-      createdAt: DateTime.parse(json['created_at']),
-      reminderAt: json['reminder_at'] != null
-          ? DateTime.parse(json['reminder_at'])
+      id: map['id'] as int,
+      title: map['title'] as String,
+      content: map['content'] as String,
+      color: map['color'] as String,
+      createdAt: DateTime.parse(map['createdAt'] as String),
+      reminderAt: map['reminderAt'] != null
+          ? DateTime.parse(map['reminderAt'] as String)
           : null,
+      userEmail: map['userEmail'] as String,
     );
   }
 }

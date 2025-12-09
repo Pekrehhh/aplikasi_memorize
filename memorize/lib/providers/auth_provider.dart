@@ -1,117 +1,150 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import '../services/api_service.dart'; 
+import 'package:hive/hive.dart';
+import '../models/user.dart';
 
 class AuthProvider with ChangeNotifier {
-  final ApiService _apiService = ApiService();
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
 
-  String? _token;
-  bool _isLoading = false;
   String? _email;
-  String? _profileImageUrl;
-  bool _isUploading = false;
-  String? get email => _email;
-  String? get profileImageUrl => _profileImageUrl;
-  bool get isUploading => _isUploading;
+  String? _profileImagePath;
   String? _saranKesan;
+  bool _isLoading = false;
+  bool _isUploading = false;
+
+  String? get email => _email;
+  String? get profileImagePath => _profileImagePath;
   String? get saranKesan => _saranKesan;
+  bool get isUploading => _isUploading;
+  bool get isLoading => _isLoading;
 
-  bool get isAuth {
-    return _token != null;
-  }
-
-  String? get token {
-    return _token;
-  }
-
-  bool get isLoading {
-    return _isLoading;
-  }
-
-  get baseUrl => null;
+  bool get isAuth => _email != null;
 
   Future<Map<String, dynamic>> login(String username, String password) async {
     _isLoading = true;
     notifyListeners();
 
-    final result = await _apiService.login(username, password);
+    final usersBox = Hive.box<User>('users');
+    try {
+      final matched = usersBox.values.firstWhere(
+        (u) => u.username == username && u.password == password,
+        orElse: () => throw 'Username atau password salah',
+      );
 
-    if (result['success'] == true) {
-      _token = result['token'];
-      _email = result['user']['email'];
-      _profileImageUrl = result['user']['profile_image_url'];
-      
-      await _storage.write(key: 'authToken', value: _token);
+      _email = matched.email;
+      _profileImagePath = matched.profileImagePath;
+      _saranKesan = matched.saranKesan;
+
+      await _storage.write(key: 'authEmail', value: _email);
 
       _isLoading = false;
       notifyListeners();
       return {'success': true};
-    } else {
+    } catch (e) {
       _isLoading = false;
       notifyListeners();
-      return {'success': false, 'message': result['message']};
+      return {'success': false, 'message': e.toString()};
     }
   }
 
   Future<void> tryAutoLogin() async {
-    final storedToken = await _storage.read(key: 'authToken');
-    
-    if (storedToken != null) {
-      _token = storedToken;
-      await fetchProfile(_token!);
+    final storedEmail = await _storage.read(key: 'authEmail');
+    if (storedEmail != null) {
+      await fetchProfile(storedEmail);
       notifyListeners();
     }
   }
 
   Future<void> logout() async {
-    _token = null;
-    await _storage.delete(key: 'authToken');
+    _email = null;
+    _profileImagePath = null;
+    _saranKesan = null;
+    await _storage.delete(key: 'authEmail');
     notifyListeners();
   }
 
   Future<Map<String, dynamic>> register(String username, String email, String password) async {
     _isLoading = true;
     notifyListeners();
-    final result = await _apiService.register(username, email, password);
+
+    final usersBox = Hive.box<User>('users');
+
+    // validation: unique username/email
+    final usernameExists = usersBox.values.any((u) => u.username == username);
+    if (usernameExists) {
+      _isLoading = false;
+      notifyListeners();
+      return {'success': false, 'message': 'Username sudah digunakan.'};
+    }
+
+    final emailExists = usersBox.values.any((u) => u.email == email);
+    if (emailExists) {
+      _isLoading = false;
+      notifyListeners();
+      return {'success': false, 'message': 'Email sudah terdaftar.'};
+    }
+
+    final newUser = User(username: username, email: email, password: password);
+    await usersBox.add(newUser);
 
     _isLoading = false;
     notifyListeners();
-    return result;
+    return {'success': true, 'message': 'Registrasi berhasil'};
   }
 
-  Future<void> fetchProfile(String token) async {
-    final result = await _apiService.getProfile(token);
-    if (result['success'] == true) {
-      _email = result['data']['email'];
-      _profileImageUrl = result['data']['profile_image_url'];
-      _saranKesan = result['data']['saran_kesan'];
+  Future<void> fetchProfile(String email) async {
+    final usersBox = Hive.box<User>('users');
+    try {
+      final user = usersBox.values.firstWhere((u) => u.email == email);
+      _email = user.email;
+      _profileImagePath = user.profileImagePath;
+      _saranKesan = user.saranKesan;
       notifyListeners();
+    } catch (_) {
+      // ignore: no-op
     }
   }
-  
-  Future<void> uploadImage(String token, String imagePath) async {
+
+  Future<void> uploadImage(String imagePath) async {
+    if (_email == null) return;
     _isUploading = true;
     notifyListeners();
 
-    final result = await _apiService.uploadProfileImage(token, imagePath);
-
-    if (result['success'] == true) {
-      _profileImageUrl = result['data']['profile_image_url'];
-    } else {
-      print(result['message']);
+    final usersBox = Hive.box<User>('users');
+    try {
+      final idx = usersBox.values.toList().indexWhere((u) => u.email == _email);
+      if (idx >= 0) {
+        final key = usersBox.keyAt(idx);
+        final user = usersBox.get(key) as User;
+        user.profileImagePath = imagePath;
+        await user.save();
+        _profileImagePath = imagePath;
+      }
+    } catch (e) {
+      // ignore
     }
 
     _isUploading = false;
     notifyListeners();
   }
 
-  Future<Map<String, dynamic>> updateSaranKesan(String token, String saranKesan) async {
-    final result = await _apiService.updateSaranKesan(token, saranKesan);
-    if (result['success'] == true) {
-      _saranKesan = saranKesan;
-      notifyListeners();
+  Future<Map<String, dynamic>> updateSaranKesan(String saranKesan) async {
+    if (_email == null) return {'success': false, 'message': 'Not logged in'};
+    final usersBox = Hive.box<User>('users');
+    try {
+      final idx = usersBox.values.toList().indexWhere((u) => u.email == _email);
+      if (idx >= 0) {
+        final key = usersBox.keyAt(idx);
+        final user = usersBox.get(key) as User;
+        user.saranKesan = saranKesan;
+        await user.save();
+        _saranKesan = saranKesan;
+        notifyListeners();
+        return {'success': true, 'message': 'Saran & Kesan berhasil disimpan'};
+      }
+      return {'success': false, 'message': 'User tidak ditemukan'};
+    } catch (e) {
+      return {'success': false, 'message': e.toString()};
     }
-    return result;
   }
 }

@@ -1,15 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:hive/hive.dart';
 import '../models/note.dart';
-import '../services/api_service.dart';
 
 class NotesProvider with ChangeNotifier {
-  final ApiService _apiService = ApiService();
-
   List<Note> _masterNotes = [];
   String _searchQuery = '';
 
-  final bool _isLoading = false;
-
+  bool _isLoading = false;
   bool get isLoading => _isLoading;
 
   List<Note> get notes {
@@ -24,13 +21,18 @@ class NotesProvider with ChangeNotifier {
   }
 
   Future<void> fetchNotes(String token) async {
+    _isLoading = true;
+    notifyListeners();
     try {
-      _masterNotes = await _apiService.getNotes(token);
+      final box = Hive.box<Note>('notes');
+      _masterNotes = box.values.toList();
+      // sort by createdAt desc if available
+      _masterNotes.sort((a, b) => b.createdAt.compareTo(a.createdAt));
       _searchQuery = '';
     } catch (e) {
-      print(e);
       _masterNotes = [];
     }
+    _isLoading = false;
     notifyListeners();
   }
 
@@ -47,32 +49,48 @@ class NotesProvider with ChangeNotifier {
     DateTime? reminderAt,
   ) async {
     try {
-      final newNote = await _apiService.createNote(
-        token,
-        title,
-        content,
-        color,
-        reminderAt,
+      final box = Hive.box<Note>('notes');
+
+      // generate id: max existing id + 1 or timestamp
+      int nextId = 1;
+      if (box.values.isNotEmpty) {
+        final ids = box.values.map((e) => e.id).toList();
+        nextId = (ids.reduce((a, b) => a > b ? a : b)) + 1;
+      }
+
+      final newNote = Note(
+        id: nextId,
+        title: title,
+        content: content,
+        color: color,
+        createdAt: DateTime.now(),
+        reminderAt: reminderAt,
+        userEmail: '',
       );
+
+      await box.add(newNote);
 
       _masterNotes.insert(0, newNote);
       notifyListeners();
     } catch (e) {
-      print(e);
       rethrow;
     }
   }
 
   Future<void> deleteNote(String token, int noteId) async {
     try {
-      final success = await _apiService.deleteNote(token, noteId);
-
-      if (success) {
+      final box = Hive.box<Note>('notes');
+      final Map<dynamic, Note> entries = box.toMap();
+      dynamic foundKey;
+      entries.forEach((key, value) {
+        if (value.id == noteId) foundKey = key;
+      });
+      if (foundKey != null) {
+        await box.delete(foundKey);
         _masterNotes.removeWhere((note) => note.id == noteId);
         notifyListeners();
       }
     } catch (e) {
-      print(e);
       rethrow;
     }
   }
