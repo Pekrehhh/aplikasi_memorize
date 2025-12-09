@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../providers/auth_provider.dart';
 import '../../providers/notes_provider.dart';
 import '../../services/notification_service.dart';
 
@@ -13,7 +12,10 @@ class NotesTabController with ChangeNotifier {
   bool get isSearching => _isSearching;
   
   void init(BuildContext context) {
-    _fetchNotes(context);
+    // Defer initialization to avoid setState during build
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _fetchNotes(context);
+    });
     searchController.addListener(() {
       _onSearchChanged(context);
     });
@@ -29,7 +31,7 @@ class NotesTabController with ChangeNotifier {
     try {
       Provider.of<NotesProvider>(context, listen: false).searchNotes(searchController.text);
     } catch (e) {
-      print("Error searching notes (mungkin provider ter-dispose): $e");
+      // Silently skip errors
     }
   }
 
@@ -47,24 +49,21 @@ class NotesTabController with ChangeNotifier {
   }
 
   Future<void> _fetchNotes(BuildContext context) async {
-    final token = Provider.of<AuthProvider>(context, listen: false).token;
     final notesProvider = Provider.of<NotesProvider>(context, listen: false);
 
     searchController.clear();
     notesProvider.searchNotes('');
-    
-    if (token != null) {
-      try {
-        await notesProvider.fetchNotes(token);
-      } catch (e) {
-        if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Gagal memuat notes: $e'),
-              backgroundColor: Colors.red,
-            ),
-          );
-        }
+
+    try {
+      await notesProvider.fetchNotes('');
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Gagal memuat notes: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
       }
     }
     if (context.mounted) {
@@ -73,17 +72,9 @@ class NotesTabController with ChangeNotifier {
   }
 
   Future<void> deleteNote(BuildContext context, int noteId) async {
-    final token = Provider.of<AuthProvider>(context, listen: false).token;
-    if (token == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Sesi habis, silakan login ulang.'), backgroundColor: Colors.red),
-      );
-      return;
-    }
-    
     try {
       await NotificationService().cancelNotification(noteId);
-      await Provider.of<NotesProvider>(context, listen: false).deleteNote(token, noteId);
+      await Provider.of<NotesProvider>(context, listen: false).deleteNote('', noteId);
     } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

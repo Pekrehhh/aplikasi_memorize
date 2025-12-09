@@ -98,7 +98,7 @@ class NewMemoScreen extends StatelessWidget {
                           decoration: InputDecoration(
                             hintText: 'Title',
                             hintStyle: TextStyle(
-                              color: Colors.white.withOpacity(0.7),
+                              color: Colors.white.withValues(alpha: 0.7),
                               fontSize: 24,
                               fontWeight: FontWeight.w500,
                             ),
@@ -117,7 +117,7 @@ class NewMemoScreen extends StatelessWidget {
                             decoration: InputDecoration(
                               hintText: 'Type some text',
                               hintStyle: TextStyle(
-                                color: labelColor.withOpacity(0.7),
+                                color: labelColor.withValues(alpha: 0.7),
                                 fontSize: 14,
                                 fontWeight: FontWeight.w400,
                               ),

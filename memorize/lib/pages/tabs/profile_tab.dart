@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
+import 'dart:io';
 import '../../controllers/profile_tab_controller.dart';
 
 class ProfileTab extends StatelessWidget {
@@ -36,7 +37,7 @@ class ProfileTab extends StatelessWidget {
 
     showDialog(
       context: context,
-      barrierColor: Colors.black.withOpacity(0.5),
+      barrierColor: Colors.black.withValues(alpha: 0.5),
       builder: (BuildContext dialogContext) {
         return Dialog(
           backgroundColor: Colors.transparent,
@@ -143,11 +144,10 @@ class ProfileTab extends StatelessWidget {
       child: Consumer2<AuthProvider, ProfileTabController>(
         builder: (ctx, auth, controller, child) {
           
-          String? imageUrl = auth.profileImageUrl;
-          NetworkImage? profileImage;
-          if (imageUrl != null) {
-            final fullUrl = '${auth.baseUrl}$imageUrl'; 
-            profileImage = NetworkImage(fullUrl);
+          String? imagePath = auth.profileImagePath;
+          ImageProvider? profileImage;
+          if (imagePath != null && imagePath.isNotEmpty) {
+            profileImage = FileImage(File(imagePath));
           }
           
           final saranKesan = auth.saranKesan ?? "Aplikasi ini sangat membantu dalam mencatat memo dan tugas. Fitur notifikasi dan konversi juga sangat berguna!";
@@ -210,7 +210,7 @@ class ProfileTab extends StatelessWidget {
                           Positioned.fill(
                             child: Container(
                               decoration: BoxDecoration(
-                                color: Colors.black.withOpacity(0.5),
+                                color: Colors.black.withValues(alpha: 0.5),
                                 shape: BoxShape.circle,
                               ),
                               child: Center(

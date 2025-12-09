@@ -164,7 +164,7 @@ class CurrencyConverterScreen extends StatelessWidget {
                                 decoration: InputDecoration(
                                   hintText: 'Amount of money',
                                   hintStyle: TextStyle(
-                                    color: inputTextColor.withOpacity(0.5),
+                                    color: inputTextColor.withValues(alpha: 0.5),
                                     fontSize: 14,
                                   ),
                                   border: InputBorder.none,

@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../controllers/time_conv_controller.dart';
 
 class TimeConverterScreen extends StatelessWidget {
+  TimeConverterScreen({Key? key}) : super(key: key);
   
   final Color backgroundColor = Color(0xFF0c1320);
   final Color badgeBgColor = Color(0xFF065353);

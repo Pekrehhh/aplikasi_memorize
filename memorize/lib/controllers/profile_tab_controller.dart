@@ -51,33 +51,16 @@ class ProfileTabController with ChangeNotifier {
   Future<void> pickAndUploadImage(BuildContext context) async {
     final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
     if (image == null) return;
-
-    final token = authProvider.token;
-    if (token == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Sesi tidak valid'), backgroundColor: Colors.red),
-      );
-      return;
-    }
-
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Mengupload foto...')),
+      const SnackBar(content: Text('Mengupload foto...')),
     );
-    await authProvider.uploadImage(token, image.path);
+    await authProvider.uploadImage(image.path);
   }
   
   Future<void> _saveSaranKesan(BuildContext context) async {
-    final token = authProvider.token;
-    if (token == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Sesi tidak valid'), backgroundColor: Colors.red),
-      );
-      return;
-    }
-
     _setSavingSaran(true);
 
-    final result = await authProvider.updateSaranKesan(token, saranEditController.text);
+    final result = await authProvider.updateSaranKesan(saranEditController.text);
 
     if (!context.mounted) return;
 

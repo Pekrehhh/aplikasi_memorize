@@ -4,6 +4,8 @@ import 'package:memorize/pages/tabs/notes_tab.dart';
 import 'package:memorize/pages/tabs/profile_tab.dart';
 
 class HomeScreen extends StatefulWidget {
+  const HomeScreen({Key? key}) : super(key: key);
+  
   @override
   _HomeScreenState createState() => _HomeScreenState();
 }

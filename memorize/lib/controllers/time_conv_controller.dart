@@ -3,11 +3,11 @@ import 'package:geolocator/geolocator.dart';
 import 'package:intl/intl.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
-import '../../services/api_service.dart';
+import 'dart:io';
+import 'dart:convert';
+import '../config.dart';
 
 class TimeConvController with ChangeNotifier {
-  final ApiService _apiService = ApiService();
-
   bool _isLoading = true;
   String? _errorMessage;
   Map<String, dynamic>? _currentTimezoneInfo;
@@ -30,9 +30,9 @@ class TimeConvController with ChangeNotifier {
     notifyListeners();
 
     try {
-      final apiKey = await _apiService.getTimezoneDbApiKey();
-      if (apiKey == null || apiKey.isEmpty) {
-        throw Exception('API Key TimezoneDB tidak ditemukan.');
+      final apiKey = TIMEZONE_DB_API_KEY;
+      if (apiKey.isEmpty) {
+        throw Exception('API Key TimezoneDB belum diset. Edit lib/config.dart untuk menambahkannya.');
       }
 
       LocationPermission permission = await Geolocator.checkPermission();
@@ -45,18 +45,24 @@ class TimeConvController with ChangeNotifier {
       }
 
       Position position = await Geolocator.getCurrentPosition(
-          desiredAccuracy: LocationAccuracy.high);
+          locationSettings: const LocationSettings(
+            accuracy: LocationAccuracy.high,
+          ));
 
-      final timezoneInfo = await _apiService.getTimezoneInfo(
-          apiKey, position.latitude, position.longitude);
-      
-      if (timezoneInfo == null) {
-        throw Exception('Gagal mendapatkan info zona waktu.');
+      final uri = Uri.parse('http://api.timezonedb.com/v2.1/get-time-zone?key=$apiKey&format=json&by=position&lat=${position.latitude}&lng=${position.longitude}');
+      final client = HttpClient();
+      client.connectionTimeout = const Duration(seconds: 8);
+      final request = await client.getUrl(uri);
+      final response = await request.close().timeout(const Duration(seconds: 10));
+      final bodyString = await response.transform(utf8.decoder).join();
+      final body = json.decode(bodyString) as Map<String, dynamic>;
+
+      if (response.statusCode == 200 && (body['status'] == 'OK' || body['status'] == 'ok')) {
+        _currentTimezoneInfo = body;
+        _isLoading = false;
+      } else {
+        throw Exception('Gagal mengambil info zona waktu: ${body['message'] ?? 'unknown'}');
       }
-
-      _currentTimezoneInfo = timezoneInfo;
-      _isLoading = false;
-
     } catch (e) {
       _isLoading = false;
       _errorMessage = e.toString();
@@ -86,7 +92,7 @@ class TimeConvController with ChangeNotifier {
           'time': DateFormat('HH:mm').format(targetTime),
         });
       } catch (e) {
-        print("Error konversi ke $zoneName: $e");
+        // Silently skip conversion errors
       }
     });
 

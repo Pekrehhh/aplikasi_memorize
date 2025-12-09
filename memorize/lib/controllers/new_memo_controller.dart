@@ -74,9 +74,9 @@ class NewMemoController with ChangeNotifier {
     }
 
     _setLoading(true);
-    final token = Provider.of<AuthProvider>(context, listen: false).token;
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
 
-    if (token == null) {
+    if (!authProvider.isAuth) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Sesi tidak valid, silakan login ulang.'), backgroundColor: Colors.red),
@@ -90,7 +90,7 @@ class NewMemoController with ChangeNotifier {
       final notesProvider = Provider.of<NotesProvider>(context, listen: false);
       
       await notesProvider.addNote(
-        token,
+        '',
         title,
         content,
         _selectedColor,
@@ -98,7 +98,7 @@ class NewMemoController with ChangeNotifier {
       );
 
       if (_selectedDateTime != null && _selectedDateTime!.isAfter(DateTime.now())) {
-        await notesProvider.fetchNotes(token);
+        await notesProvider.fetchNotes('');
         final newNote = notesProvider.notes.first;
 
         NotificationService().scheduleNotification(

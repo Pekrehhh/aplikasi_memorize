@@ -96,7 +96,7 @@ class RegisterScreen extends StatelessWidget {
                             suffixIcon: IconButton(
                               icon: Icon(
                                 controller.obscureText ? Icons.visibility_off : Icons.visibility,
-                                color: inputTextColor.withOpacity(0.7),
+                                color: inputTextColor.withValues(alpha: 0.7),
                               ),
                               onPressed: controller.toggleObscureText,
                             ),
@@ -220,7 +220,7 @@ class RegisterScreen extends StatelessWidget {
             filled: true,
             fillColor: inputFillColor,
             hintText: hint,
-            hintStyle: TextStyle(color: inputTextColor.withOpacity(0.7)),
+            hintStyle: TextStyle(color: inputTextColor.withValues(alpha: 0.7)),
             contentPadding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10),

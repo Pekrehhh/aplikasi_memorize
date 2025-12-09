@@ -49,7 +49,7 @@ class NotificationService {
 
   void onDidReceiveLocalNotification(
     int id, String? title, String? body, String? payload) async {
-    print('iOS foreground notification received: $title');
+    // iOS foreground notification silently handled
   }
 
   void onDidReceiveNotificationResponse(NotificationResponse notificationResponse) async {
@@ -64,7 +64,6 @@ class NotificationService {
     required DateTime scheduledTime,
   }) async {
     if (scheduledTime.isBefore(DateTime.now())) {
-      print("Waktu notifikasi sudah lewat, tidak dijadwalkan.");
       return;
     }
 
@@ -88,11 +87,9 @@ class NotificationService {
       matchDateTimeComponents: DateTimeComponents.time,
       payload: 'memo_$id',
     );
-    print("Notifikasi dijadwalkan untuk ID $id pada $scheduledTime");
   }
   
   Future<void> cancelNotification(int id) async {
     await flutterLocalNotificationsPlugin.cancel(id);
-    print("Notifikasi dibatalkan untuk ID $id");
   }
 }
