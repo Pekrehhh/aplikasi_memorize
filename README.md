@@ -1,3 +1,3 @@
 # Memorize
 
-Memorize adalah aplikasi memo pribadi dengan sistem local
+Memorize adalah aplikasi memo pribadi dengan sistem local Hive
