@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:hive/hive.dart';
 import '../models/user.dart';
+import '../services/crypto_service.dart';
 
 class AuthProvider with ChangeNotifier {
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
@@ -26,8 +27,9 @@ class AuthProvider with ChangeNotifier {
 
     final usersBox = Hive.box<User>('users');
     try {
+      final hashedPassword = CryptoService.hashPassword(password);
       final matched = usersBox.values.firstWhere(
-        (u) => u.username == username && u.password == password,
+        (u) => u.username == username && u.password == hashedPassword,
         orElse: () => throw 'Username atau password salah',
       );
 
@@ -82,7 +84,8 @@ class AuthProvider with ChangeNotifier {
       return {'success': false, 'message': 'Email sudah terdaftar.'};
     }
 
-    final newUser = User(username: username, email: email, password: password);
+    final hashedPassword = CryptoService.hashPassword(password);
+    final newUser = User(username: username, email: email, password: hashedPassword);
     await usersBox.add(newUser);
 
     _isLoading = false;
