@@ -1,6 +1,6 @@
-# memorize
+# Memorize
 
-A new Flutter project.
+Memorize adalah aplikasi memo pribadi dengan sistem local
 
 ## Getting Started
 
