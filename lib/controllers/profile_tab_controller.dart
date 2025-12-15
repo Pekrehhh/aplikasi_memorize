@@ -49,31 +49,31 @@ class ProfileTabController with ChangeNotifier {
   }
   
   Future<void> pickAndUploadImage(BuildContext context) async {
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
     final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
     if (image == null) return;
-    ScaffoldMessenger.of(context).showSnackBar(
+    scaffoldMessenger.showSnackBar(
       const SnackBar(content: Text('Mengupload foto...')),
     );
     await authProvider.uploadImage(image.path);
   }
   
   Future<void> _saveSaranKesan(BuildContext context) async {
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
     _setSavingSaran(true);
 
     final result = await authProvider.updateSaranKesan(saranEditController.text);
-
-    if (!context.mounted) return;
 
     _setSavingSaran(false);
 
     if (result['success'] == true) {
       _isEditingSaran = false;
       notifyListeners();
-      ScaffoldMessenger.of(context).showSnackBar(
+      scaffoldMessenger.showSnackBar(
         SnackBar(content: Text('Saran & Kesan berhasil disimpan!'), backgroundColor: Colors.green),
       );
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
+      scaffoldMessenger.showSnackBar(
         SnackBar(content: Text(result['message'] ?? 'Gagal menyimpan'), backgroundColor: Colors.red),
       );
     }

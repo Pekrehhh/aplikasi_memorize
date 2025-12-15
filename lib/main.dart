@@ -1,15 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:memorize/providers/notes_provider.dart';
-import 'package:memorize/pages/navigation.dart';
-import 'package:provider/provider.dart';
-import 'package:memorize/providers/auth_provider.dart';
-import 'package:memorize/pages/auth/login_screen.dart';
-import 'package:memorize/pages/auth/splash_screen.dart';
-import 'package:memorize/providers/currency_provider.dart';
-import 'package:memorize/services/notification_service.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:memorize/models/user.dart';
 import 'package:memorize/models/note.dart';
+import 'package:provider/provider.dart';
+import 'package:memorize/pages/navigation.dart';
+import 'package:memorize/providers/auth_provider.dart';
+import 'package:memorize/providers/notes_provider.dart';
+import 'package:memorize/providers/currency_provider.dart';
+import 'package:memorize/providers/location_provider.dart';
+import 'package:memorize/pages/auth/login_screen.dart';
+import 'package:memorize/pages/auth/splash_screen.dart';
+import 'package:memorize/services/notification_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -27,7 +28,11 @@ Future<void> main() async {
           create: (ctx) => AuthProvider(),
         ),
         ChangeNotifierProvider(
-          create: (ctx) => NotesProvider(),
+          create: (ctx) => LocationProvider(),
+        ),
+        ChangeNotifierProxyProvider<AuthProvider, NotesProvider>(
+          create: (ctx) => NotesProvider(Provider.of<AuthProvider>(ctx, listen: false)),
+          update: (ctx, auth, previousNotes) => previousNotes!..updateAuth(auth),
         ),
         ChangeNotifierProvider(
           create: (ctx) => CurrencyProvider(),
@@ -51,9 +56,9 @@ class Memorize extends StatelessWidget {
       home: Consumer<AuthProvider>(
         builder: (ctx, auth, _) {
           if (auth.isAuth) { 
-            return HomeScreen(); 
+            return const HomeScreen(); 
           } else {
-            return AuthGate();
+            return const AuthGate();
           }
         },
       ),
@@ -61,19 +66,31 @@ class Memorize extends StatelessWidget {
   }
 }
 
-class AuthGate extends StatelessWidget {
+class AuthGate extends StatefulWidget {
   const AuthGate({super.key});
+
+  @override
+  State<AuthGate> createState() => _AuthGateState();
+}
+
+class _AuthGateState extends State<AuthGate> {
+  late Future<void> _autoLoginFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _autoLoginFuture = Provider.of<AuthProvider>(context, listen: false).tryAutoLogin();
+  }
 
   @override
   Widget build(BuildContext context) {
     return FutureBuilder(
-      future: Provider.of<AuthProvider>(context, listen: false).tryAutoLogin(),
+      future: _autoLoginFuture,
       builder: (ctx, authSnapshot) {
-        
         if (authSnapshot.connectionState == ConnectionState.waiting) {
-          return SplashScreen(); 
+          return const SplashScreen(); 
         } else {
-          return LoginScreen();
+          return const LoginScreen();
         }
       },
     );

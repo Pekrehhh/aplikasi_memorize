@@ -1,96 +1,127 @@
 import 'package:flutter/material.dart';
-import 'package:hive/hive.dart';
-import '../models/note.dart';
+import 'package:hive_flutter/hive_flutter.dart';
+import 'package:memorize/models/note.dart';
+import 'package:memorize/providers/auth_provider.dart';
 
 class NotesProvider with ChangeNotifier {
-  List<Note> _masterNotes = [];
-  String _searchQuery = '';
+  final Box<Note> _notesBox = Hive.box<Note>('notes');
+  AuthProvider? _authProvider;
+  
+  String get activeUserEmail => _authProvider?.email ?? '';
 
-  bool _isLoading = false;
-  bool get isLoading => _isLoading;
-
-  List<Note> get notes {
-    if (_searchQuery.isEmpty) {
-      return _masterNotes;
-    } else {
-      return _masterNotes
-          .where((note) =>
-              note.title.toLowerCase().contains(_searchQuery.toLowerCase()))
-          .toList();
+  NotesProvider(this._authProvider) {
+    if (_authProvider != null) {
+      _loadNotes();
     }
   }
 
-  Future<void> fetchNotes(String token) async {
+  void updateAuth(AuthProvider? auth) {
+    _authProvider = auth;
+    refreshNotes();
+  }
+
+  List<Note> _notes = [];
+  List<Note> _filteredNotes = [];
+  bool _isLoading = false;
+  String _currentQuery = '';
+
+  List<Note> get notes {
+    if (_currentQuery.isEmpty) {
+      return _notes;
+    } else {
+      return _filteredNotes;
+    }
+  }
+
+  bool get isLoading => _isLoading;
+  
+  String get _activeUserEmail => _authProvider?.email ?? '';
+
+  void _loadNotes() {
+    if (_authProvider == null) return;
     _isLoading = true;
     notifyListeners();
-    try {
-      final box = Hive.box<Note>('notes');
-      _masterNotes = box.values.toList();
-      // sort by createdAt desc if available
-      _masterNotes.sort((a, b) => b.createdAt.compareTo(a.createdAt));
-      _searchQuery = '';
-    } catch (e) {
-      _masterNotes = [];
+    
+    _notes = _notesBox.values
+        .where((note) => note.userEmail == _activeUserEmail)
+        .toList();
+    _notes.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+    
+    if (_currentQuery.isNotEmpty) {
+      final lowerQuery = _currentQuery.toLowerCase();
+      _filteredNotes = _notes.where((note) {
+        return note.title.toLowerCase().contains(lowerQuery) || note.content.toLowerCase().contains(lowerQuery);
+      }).toList();
     }
+    
     _isLoading = false;
     notifyListeners();
   }
+  
+  Future<Note?> addNote(String title, String content, String color, DateTime? reminderAt) async {
+    if (_activeUserEmail.isEmpty) {
+      debugPrint('NotesProvider.addNote: active user email is empty, cannot save');
+      return null;
+    }
 
-  void searchNotes(String query) {
-    _searchQuery = query;
+    _isLoading = true;
     notifyListeners();
-  }
-
-  Future<void> addNote(
-    String token,
-    String title,
-    String content,
-    String color,
-    DateTime? reminderAt,
-  ) async {
+    Note? newNote;
     try {
-      final box = Hive.box<Note>('notes');
-      
-      int nextId = 1;
-      if (box.values.isNotEmpty) {
-        final ids = box.values.map((e) => e.id).toList();
-        nextId = (ids.reduce((a, b) => a > b ? a : b)) + 1;
-      }
-
-      final newNote = Note(
-        id: nextId,
+      newNote = Note(
+        id: 0,
         title: title,
         content: content,
         color: color,
         createdAt: DateTime.now(),
         reminderAt: reminderAt,
-        userEmail: '',
+        userEmail: _activeUserEmail,
       );
 
-      await box.add(newNote);
+      final key = await _notesBox.add(newNote);
+      newNote.id = key;
+      await newNote.save();
 
-      _masterNotes.insert(0, newNote);
+      try {
+        debugPrint('Notes box keys: ${_notesBox.keys.toList()}');
+        debugPrint('Stored note id: $key');
+      } catch (_) {}
+
+      refreshNotes();
+      return newNote;
+    } catch (e, st) {
+      debugPrint('NotesProvider.addNote error: $e');
+      debugPrint(st.toString());
+      return null;
+    } finally {
+      _isLoading = false;
       notifyListeners();
-    } catch (e) {
-      rethrow;
     }
   }
 
-  Future<void> deleteNote(String token, int noteId) async {
+  Future<void> deleteNote(int id) async {
+    _isLoading = true;
+    notifyListeners();
     try {
-      final box = Hive.box<Note>('notes');
-      final Map<dynamic, Note> entries = box.toMap();
-      dynamic foundKey;
-      entries.forEach((key, value) {
-        if (value.id == noteId) foundKey = key;
-      });
-      if (foundKey != null) {
-        await box.delete(foundKey);
-        _masterNotes.removeWhere((note) => note.id == noteId);
-        notifyListeners();
+      if (_notesBox.containsKey(id)) {
+        await _notesBox.delete(id);
+        _loadNotes();
       }
     } catch (e) {
-      rethrow;
+      //
+    } finally {
+      _isLoading = false;
+      notifyListeners();
     }
+  }
+  
+  void searchNotes(String query) {
+    _currentQuery = query;
+    _loadNotes();
+  }
+  
+  void refreshNotes() {
+    _currentQuery = '';
+    _loadNotes();
   }
 }

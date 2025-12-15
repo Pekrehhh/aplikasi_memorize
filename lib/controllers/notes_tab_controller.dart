@@ -12,7 +12,6 @@ class NotesTabController with ChangeNotifier {
   bool get isSearching => _isSearching;
   
   void init(BuildContext context) {
-    // Defer initialization to avoid setState during build
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _fetchNotes(context);
     });
@@ -31,7 +30,7 @@ class NotesTabController with ChangeNotifier {
     try {
       Provider.of<NotesProvider>(context, listen: false).searchNotes(searchController.text);
     } catch (e) {
-      // Silently skip errors
+      // ga boleh kosong
     }
   }
 
@@ -54,36 +53,23 @@ class NotesTabController with ChangeNotifier {
     searchController.clear();
     notesProvider.searchNotes('');
 
-    try {
-      await notesProvider.fetchNotes('');
-    } catch (e) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Gagal memuat notes: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    }
     if (context.mounted) {
       _setLoading(false);
     }
   }
 
   Future<void> deleteNote(BuildContext context, int noteId) async {
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
     try {
       await NotificationService().cancelNotification(noteId);
-      await Provider.of<NotesProvider>(context, listen: false).deleteNote('', noteId);
+      await Provider.of<NotesProvider>(context, listen: false).deleteNote(noteId);
     } catch (e) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Gagal menghapus note: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
+      scaffoldMessenger.showSnackBar(
+        SnackBar(
+          content: Text('Gagal menghapus note: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
   }
 }

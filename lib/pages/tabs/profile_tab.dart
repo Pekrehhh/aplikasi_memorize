@@ -3,7 +3,6 @@ import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import 'dart:io';
 import '../../controllers/profile_tab_controller.dart';
-import '../../services/save_file_service.dart';
 
 class ProfileTab extends StatelessWidget {
   const ProfileTab({super.key});
@@ -286,97 +285,6 @@ class ProfileTab extends StatelessWidget {
                           style: TextStyle(color: labelColor, fontSize: 14),
                         ),
                       ),
-                    
-                    SizedBox(height: 40),                    
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Color(0xFF065353),
-                            foregroundColor: Colors.white,
-                            fixedSize: Size(120, 45),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                          ),
-                          onPressed: () async {
-                            final service = SaveFileService();
-                            try {
-                              final path = await service.exportToJsonFile();
-                              if (context.mounted) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text('Saved to: $path'),
-                                    duration: Duration(seconds: 3),
-                                    backgroundColor: Colors.green,
-                                  ),
-                                );
-                              }
-                            } catch (e) {
-                              if (context.mounted) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text('Export failed: $e'),
-                                    backgroundColor: Colors.red,
-                                  ),
-                                );
-                              }
-                            }
-                          },
-                          child: Text(
-                            'Export',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ),
-                        
-                        SizedBox(width: 20),                        
-                        ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Color(0xFF065353),
-                            foregroundColor: Colors.white,
-                            fixedSize: Size(120, 45),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                          ),
-                          onPressed: () async {
-                            final service = SaveFileService();
-                            try {
-                              await service.importFromJsonFile();
-                              if (context.mounted) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text('Data imported successfully!'),
-                                    duration: Duration(seconds: 2),
-                                    backgroundColor: Colors.green,
-                                  ),
-                                );
-                              }
-                            } catch (e) {
-                              if (context.mounted) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text('Import failed: $e'),
-                                    backgroundColor: Colors.red,
-                                  ),
-                                );
-                              }
-                            }
-                          },
-                          child: Text(
-                            'Import',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
                     
                     SizedBox(height: 40),                    
                     if (auth.isLoading)

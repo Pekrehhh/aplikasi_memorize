@@ -144,7 +144,7 @@ class KonverterTab extends StatelessWidget {
                 textColor: buttonTextColor,
                 onTap: () {
                   Navigator.of(context).push(
-                    MaterialPageRoute(builder: (ctx) => TimeConverterScreen()),
+                    MaterialPageRoute(builder: (ctx) => TimeConvScreen()),
                   );
                 },
               ),

@@ -75,6 +75,7 @@ class NewMemoController with ChangeNotifier {
 
     _setLoading(true);
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    debugPrint('NewMemoController.saveMemo: auth email=${authProvider.email}, isAuth=${authProvider.isAuth}');
 
     if (!authProvider.isAuth) {
       if (context.mounted) {
@@ -88,30 +89,37 @@ class NewMemoController with ChangeNotifier {
 
     try {
       final notesProvider = Provider.of<NotesProvider>(context, listen: false);
-      
-      await notesProvider.addNote(
-        '',
-        title,
-        content,
-        _selectedColor,
-        _selectedDateTime,
-      );
+      notesProvider.updateAuth(authProvider);
+      debugPrint('NewMemoController.saveMemo: notesProvider activeUserEmail=${notesProvider.activeUserEmail}');
 
-      if (_selectedDateTime != null && _selectedDateTime!.isAfter(DateTime.now())) {
-        await notesProvider.fetchNotes('');
-        final newNote = notesProvider.notes.first;
-
-        NotificationService().scheduleNotification(
-          id: newNote.id,
-          title: newNote.title,
-          body: newNote.content,
-          scheduledTime: _selectedDateTime!,
+      final createdNote = await notesProvider.addNote(
+          title,
+          content,
+          _selectedColor,
+          _selectedDateTime,
         );
-      }
 
-      if (context.mounted) {
-        Navigator.of(context).pop();
-      }
+        if (createdNote != null && _selectedDateTime != null && _selectedDateTime!.isAfter(DateTime.now())) {
+          NotificationService().scheduleNotification(
+            id: createdNote.id,
+            title: createdNote.title,
+            body: createdNote.content,
+            scheduledTime: _selectedDateTime!,
+          );
+        }
+
+        if (context.mounted) {
+          if (createdNote != null) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Memo tersimpan (id: ${createdNote.id})'), backgroundColor: Colors.green),
+            );
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Gagal menyimpan memo'), backgroundColor: Colors.red),
+            );
+          }
+          Navigator.of(context).pop();
+        }
     } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
