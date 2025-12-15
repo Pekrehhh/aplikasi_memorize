@@ -3,7 +3,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:memorize/models/user.dart';
 import 'package:memorize/models/note.dart';
 import 'package:provider/provider.dart';
-import 'package:memorize/pages/navigation.dart';
+import 'package:memorize/navigation.dart';
 import 'package:memorize/providers/auth_provider.dart';
 import 'package:memorize/providers/notes_provider.dart';
 import 'package:memorize/providers/currency_provider.dart';
